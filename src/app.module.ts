@@ -1,0 +1,66 @@
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
+import { UserModule } from './user/user.module';
+import { TeacherModule } from './teacher/teacher.module';
+import { StudentModule } from './student/student.module';
+import { AuthModule } from './auth/auth.module';
+import { LessonModule } from './lesson/lesson.module';
+import { QuizModule } from './quiz/quiz.module';
+import { ChatModule } from './chat/chat.module';
+import { MessageModule } from './message/message.module';
+import { NotificationModule } from './notification/notification.module';
+import { EnrollmentModule } from './enrollment/enrollment.module';
+import { CertificationModule } from './certification/certification.module';
+import { ScoreModule } from './score/score.module';
+import { CourseModule } from './course/course.module';
+import { SessionModule } from './session/session.module';
+import { SalaryConfigModule } from './salary-config/salary-config.module';
+import { CategoryModule } from './category/category.module';
+import { CourseCategoryModule } from './course_category/course_category.module';
+import { QuizQuestionModule } from './quiz_question/quiz_question.module';
+import { QuizOptionModule } from './quiz_option/quiz_option.module';
+import { CertificationAchieveModule } from './certification_achieve/certification_achieve.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      database: process.env.DB_NAME,
+      password: process.env.DB_PASSWORD,
+      host: process.env.DB_HOST,
+      username: process.env.DB_USER,
+      port: Number(process.env.DB_PORT),
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true,
+    }),
+    UserModule,
+    TeacherModule,
+    StudentModule,
+    AuthModule,
+    LessonModule,
+    QuizModule,
+    ChatModule,
+    MessageModule,
+    NotificationModule,
+    EnrollmentModule,
+    CertificationModule,
+    ScoreModule,
+    CourseModule,
+    SessionModule,
+    SalaryConfigModule,
+    CategoryModule,
+    CourseCategoryModule,
+    QuizQuestionModule,
+    QuizOptionModule,
+    CertificationAchieveModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
