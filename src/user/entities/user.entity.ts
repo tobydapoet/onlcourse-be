@@ -12,8 +12,9 @@ import { ProvideType } from '../types/provider.type';
 import { Student } from 'src/student/entities/student.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
 import * as bycript from 'bcrypt';
-import { Session } from 'src/session/entities/session.entity';
 import { Message } from 'src/message/entities/message.entity';
+import { Role } from 'src/auth/enums/role.enum';
+import { Auth } from 'src/auth/entities/auth.entity';
 
 @Entity('user')
 export class User {
@@ -38,8 +39,11 @@ export class User {
   @Column({ type: 'enum', enum: ProvideType, nullable: true })
   provider_type: ProvideType;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   avatar_url: string;
+
+  @Column({ type: 'enum', enum: Role, default: Role.STUDENT })
+  role: Role;
 
   @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIVE })
   status: UserStatus;
@@ -53,13 +57,13 @@ export class User {
       this.password = await bycript.hash(this.password, 10);
     }
   }
-  @OneToMany(() => Session, (session) => session.user)
-  sessions: Session[];
+  @OneToMany(() => Auth, (auth) => auth.user)
+  sessions: Auth[];
 
-  @OneToOne(() => Student, (student) => student.user)
+  @OneToOne(() => Student, (student) => student.user, { eager: true })
   student: Student;
 
-  @OneToOne(() => Teacher, (teacher) => teacher.user)
+  @OneToOne(() => Teacher, (teacher) => teacher.user, { eager: true })
   teacher: Teacher;
 
   @OneToMany(() => Message, (message) => message.sender)

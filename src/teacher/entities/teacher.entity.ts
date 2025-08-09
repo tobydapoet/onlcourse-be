@@ -6,7 +6,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { TeacherRole } from '../types/teacher-role';
+import { TeacherRole } from '../../auth/enums/teacher-role';
 import { User } from 'src/user/entities/user.entity';
 import { SalaryConfig } from 'src/salary-config/entities/salary-config.entity';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
@@ -16,17 +16,17 @@ export class Teacher {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   bio: string;
 
-  @OneToOne(() => User, (user) => user.teacher, { eager: true })
+  @OneToOne(() => User, (user) => user.teacher)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
   @Column({ type: 'enum', enum: TeacherRole })
   role_type: TeacherRole;
 
-  @Column({ type: 'date', nullable: false })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   hr_date: Date;
 
   @Column({ type: 'text' })

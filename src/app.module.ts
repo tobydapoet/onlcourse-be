@@ -16,7 +16,6 @@ import { EnrollmentModule } from './enrollment/enrollment.module';
 import { CertificationModule } from './certification/certification.module';
 import { ScoreModule } from './score/score.module';
 import { CourseModule } from './course/course.module';
-import { SessionModule } from './session/session.module';
 import { SalaryConfigModule } from './salary-config/salary-config.module';
 import { CategoryModule } from './category/category.module';
 import { CourseCategoryModule } from './course_category/course_category.module';
@@ -52,7 +51,6 @@ import { CertificationAchieveModule } from './certification_achieve/certificatio
     CertificationModule,
     ScoreModule,
     CourseModule,
-    SessionModule,
     SalaryConfigModule,
     CategoryModule,
     CourseCategoryModule,

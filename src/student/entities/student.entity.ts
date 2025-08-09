@@ -16,14 +16,14 @@ export class Student {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @OneToOne(() => User, (user) => user.student, { eager: true })
+  @OneToOne(() => User, (user) => user.student)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   dob: Date;
 
-  @Column({ type: 'enum', enum: ['Nam', 'Nữ'] })
+  @Column({ type: 'enum', enum: ['Nam', 'Nữ'], nullable: true })
   gender: ['Name', 'Nữ'];
 
   @OneToMany(() => Score, (score) => score.student)
