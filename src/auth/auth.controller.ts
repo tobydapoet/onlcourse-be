@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
@@ -19,6 +20,7 @@ import { Role } from './enums/role.enum';
 import { Roles } from './decorator/role.decorator';
 import { TeacherPosition } from './decorator/teacher-type.decorator';
 import { TeacherRole } from './enums/teacher-role';
+import { GoogleGuard } from './guard/google/google.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -37,30 +39,36 @@ export class AuthController {
     return this.authService.refreshToken(req.user);
   }
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  @Public()
+  @UseGuards(GoogleGuard)
+  @Get('google/login')
+  loginGoogle(@Req() req) {
+    console.log(req.user);
+    return req.user;
+  }
+
+  @Public()
+  @UseGuards(GoogleGuard)
+  @Get('google/callback')
+  async googleCallback(@Req() req, @Res() res) {
+    const response = await this.authService.validateWithKey(req.id);
+    res.redirect(`http://localhost:3000token=${response.access_token}`);
   }
 
   @Roles(Role.TEACHER)
-  @TeacherPosition(TeacherRole.ASSISTANT)
+  @TeacherPosition(TeacherRole.ADMIN)
   @Get()
   findAll() {
     return this.authService.findAll();
   }
 
+  @Delete(':id')
+  logout(@Param('id') id: string) {
+    return this.authService.logout(id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
+    return this.authService.findOne(id);
   }
 }

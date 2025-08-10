@@ -13,6 +13,8 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigType } from '@nestjs/config';
 import refreshConfig from './config/refresh.config';
 import * as argon2 from 'argon2';
+import { CreateGoogleUser } from 'src/user/dto/create-google.dto';
+import { RedisClientType } from 'redis';
 
 @Injectable()
 export class AuthService {
@@ -23,20 +25,17 @@ export class AuthService {
     @Inject(refreshConfig.KEY)
     private refreshConfiguration: ConfigType<typeof refreshConfig>,
     @InjectRepository(Auth) private authRepo: Repository<Auth>,
+    @Inject('REDIS_STORAGE') private readonly redistStorage: RedisClientType,
   ) {}
 
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
-  }
-
-  async validateUser(indentifier: string, password: string) {
-    const existing = await this.userService.findByIndentifier(indentifier);
+  async validateUser(email: string, password: string) {
+    const existing = await this.userService.findByEmail(email);
     if (!existing) {
-      throw new Error('identifier or passwrod is incorrect!');
+      throw new Error('email or passwrod is incorrect!');
     }
     const isMatchPassword = await bcrypt.compare(password, existing?.password);
     if (!isMatchPassword) {
-      throw new Error('identifier or passwrod is incorrect!');
+      throw new Error('email or passwrod is incorrect!');
     }
     return existing;
   }
@@ -46,6 +45,8 @@ export class AuthService {
     if (!existing) {
       throw new UnauthorizedException("Can't find user!");
     }
+
+    await this.redistStorage.del(`session:all`);
 
     const session = this.authRepo.create({
       user: { id: existing.id },
@@ -119,19 +120,41 @@ export class AuthService {
     return { access_token };
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  async validateGoolgeAccount(googleAccount: CreateGoogleUser) {
+    const account = await this.userService.findByEmail(googleAccount.email);
+    console.log('account:', googleAccount);
+    if (account) return account;
+    return await this.userService.createWithGoogle(googleAccount);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
+  async logout(id: string) {
+    await this.redistStorage.del(`session:${id}`);
+    return this.authRepo.delete({ id });
   }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
+  async findAll() {
+    const cachedKey = `session:all`;
+    const cached = await this.redistStorage.get(cachedKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+    const users = await this.authRepo.find();
+    await this.redistStorage.set(cachedKey, JSON.stringify(users), {
+      EX: 60 * 5,
+    });
+    return users;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+  async findOne(id: string) {
+    const cachedKey = `user:${id}`;
+    const cached = await this.redistStorage.get(cachedKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+    const user = await this.authRepo.findOne({ where: { id } });
+    await this.redistStorage.set(cachedKey, JSON.stringify(user), {
+      EX: 60 * 5,
+    });
+    return user;
   }
 }

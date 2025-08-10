@@ -22,6 +22,8 @@ import { CourseCategoryModule } from './course_category/course_category.module';
 import { QuizQuestionModule } from './quiz_question/quiz_question.module';
 import { QuizOptionModule } from './quiz_option/quiz_option.module';
 import { CertificationAchieveModule } from './certification_achieve/certification_achieve.module';
+import { CacheModule } from './cache/cache.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -57,6 +59,8 @@ import { CertificationAchieveModule } from './certification_achieve/certificatio
     QuizQuestionModule,
     QuizOptionModule,
     CertificationAchieveModule,
+    CacheModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

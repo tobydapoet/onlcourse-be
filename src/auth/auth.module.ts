@@ -16,14 +16,19 @@ import { JwtAuthGuard } from './guard/jwt-auth/jwt-auth.guard';
 import { RoleGuard } from './guard/role/role.guard';
 import { TeacherRoleGuard } from './guard/teacher_role/teacher_role.guard';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { GoogleStrategy } from './strategy/google.strategy';
+import googleConfig from './config/google.config';
+import { CacheModule } from 'src/cache/cache.module';
 
 @Module({
   imports: [
     UserModule,
     TeacherModule,
+    CacheModule,
     TypeOrmModule.forFeature([Auth]),
     ConfigModule.forFeature(jwtConfig),
     ConfigModule.forFeature(refreshConfig),
+    ConfigModule.forFeature(googleConfig),
     JwtModule.registerAsync(jwtConfig.asProvider()),
     ConfigModule.forRoot({
       isGlobal: true,
@@ -36,6 +41,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
     LocalStrategy,
     RefreshStrategy,
     JwtStrategy,
+    GoogleStrategy,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

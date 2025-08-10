@@ -3,6 +3,10 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Public } from 'src/auth/decorator/public.decorator';
 import { CreateTeacherUserDto } from './dto/create-teacher-user.dto';
+import { Roles } from 'src/auth/decorator/role.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
+import { TeacherRole } from 'src/auth/enums/teacher-role';
 
 @Controller('user')
 export class UserController {
@@ -10,9 +14,9 @@ export class UserController {
 
   @Public()
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto) {
     try {
-      const res = this.userService.create(createUserDto);
+      const res = await this.userService.create(createUserDto);
       return {
         success: true,
         data: res,
@@ -25,7 +29,8 @@ export class UserController {
     }
   }
 
-  @Public()
+  @Roles(Role.TEACHER)
+  @TeacherPosition(TeacherRole.ADMIN)
   @Post('teacher')
   async createTeacher(@Body() createTeacherUserDto: CreateTeacherUserDto) {
     try {
