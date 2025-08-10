@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  UseInterceptors,
+  UploadedFile,
+  Query,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Public } from 'src/auth/decorator/public.decorator';
@@ -7,6 +17,8 @@ import { Roles } from 'src/auth/decorator/role.decorator';
 import { Role } from 'src/auth/enums/role.enum';
 import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -47,9 +59,36 @@ export class UserController {
     }
   }
 
+  @Public()
+  @Put(':id')
+  @UseInterceptors(FileInterceptor('file'))
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: Partial<UpdateUserDto>,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    try {
+      const res = await this.userService.update(id, updateUserDto, file);
+      return {
+        success: true,
+        data: res,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.message,
+      };
+    }
+  }
+
   @Get()
   findAll() {
     return this.userService.findAll();
+  }
+
+  @Get('search')
+  searchClient(@Query('keyword') keyword: string) {
+    return this.userService.searchUser(keyword);
   }
 
   @Get(':id')

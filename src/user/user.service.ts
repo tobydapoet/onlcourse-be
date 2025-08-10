@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
@@ -9,6 +9,8 @@ import { TeacherService } from 'src/teacher/teacher.service';
 import { Role } from 'src/auth/enums/role.enum';
 import { CreateGoogleUser } from './dto/create-google.dto';
 import { RedisClientType } from 'redis';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UploadService } from 'src/upload/upload.service';
 
 @Injectable()
 export class UserService {
@@ -17,6 +19,7 @@ export class UserService {
     @Inject(`REDIS_STORAGE`) private readonly cacheStorage: RedisClientType,
     private studentService: StudentService,
     private teacherService: TeacherService,
+    private uploadService: UploadService,
   ) {}
   async create(createUserDto: CreateUserDto) {
     const existingEmail = await this.userRepo.findOne({
@@ -59,6 +62,35 @@ export class UserService {
       });
     }
     return savedUser;
+  }
+
+  async update(
+    id: string,
+    updateUserDto: Partial<UpdateUserDto>,
+    file?: Express.Multer.File,
+  ) {
+    const existingUser = await this.userRepo.findOne({ where: { id } });
+    if (!existingUser) {
+      throw new UnauthorizedException("Can't find this user!");
+    }
+
+    if (file) {
+      if (existingUser.avatar_url) {
+        await this.uploadService.deleteImage(existingUser.avatar_url);
+      }
+      const uploadResult = await this.uploadService.uploadImage(
+        file.buffer,
+        'user',
+      );
+      updateUserDto.avatar_url = uploadResult.url;
+    }
+
+    const updatedUser = await this.userRepo.update({ id }, updateUserDto);
+    if (updatedUser) {
+      await this.cacheStorage.del(`user:all`);
+      await this.cacheStorage.del(`user:${id}`);
+    }
+    return await this.userRepo.findOne({ where: { id } });
   }
 
   async createTeacher(createTeacherDto: CreateTeacherUserDto) {

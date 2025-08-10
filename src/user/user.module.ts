@@ -6,6 +6,7 @@ import { User } from './entities/user.entity';
 import { StudentModule } from 'src/student/student.module';
 import { TeacherModule } from 'src/teacher/teacher.module';
 import { CacheModule } from 'src/cache/cache.module';
+import { UploadModule } from 'src/upload/upload.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { CacheModule } from 'src/cache/cache.module';
     StudentModule,
     TeacherModule,
     CacheModule,
+    UploadModule,
   ],
   controllers: [UserController],
   providers: [UserService],
