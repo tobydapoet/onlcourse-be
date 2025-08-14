@@ -1,15 +1,46 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Roles } from 'src/auth/decorator/role.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
+  @Roles(Role.TEACHER)
   @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoryService.create(createCategoryDto);
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+      },
+      required: ['name'],
+    },
+  })
+  async create(@Body() name: string) {
+    try {
+      const res = await this.categoryService.create(name);
+      return {
+        success: true,
+        data: res,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err,
+      };
+    }
   }
 
   @Get()
@@ -22,13 +53,46 @@ export class CategoryController {
     return this.categoryService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
-    return this.categoryService.update(+id, updateCategoryDto);
+  @Roles(Role.TEACHER)
+  @Put(':id')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+      },
+      required: ['name'],
+    },
+  })
+  async update(@Param('id') id: number, @Body() name: string) {
+    try {
+      const res = await this.categoryService.update(id, name);
+      return {
+        success: true,
+        data: res,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err,
+      };
+    }
   }
 
+  @Roles(Role.TEACHER)
+  @ApiParam({ name: 'id', type: Number })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoryService.remove(+id);
+  async remove(@Param('id') id: number) {
+    try {
+      await this.categoryService.remove(id);
+      return {
+        success: true,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err,
+      };
+    }
   }
 }

@@ -1,26 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateCourseCategoryDto } from './dto/create-course_category.dto';
-import { UpdateCourseCategoryDto } from './dto/update-course_category.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CourseCategory } from './entities/course_category.entity';
+import { Repository } from 'typeorm';
+import { RedisClientType } from 'redis';
 
 @Injectable()
 export class CourseCategoryService {
-  create(createCourseCategoryDto: CreateCourseCategoryDto) {
-    return 'This action adds a new courseCategory';
+  constructor(
+    @InjectRepository(CourseCategory)
+    private courseCategoryRepo: Repository<CourseCategory>,
+    @Inject('REDIS_STORAGE') private cacheStorage: RedisClientType,
+  ) {}
+  async create(createCourseCategoryDto: CreateCourseCategoryDto) {
+    return this.courseCategoryRepo.insert({
+      category: { id: createCourseCategoryDto.category_id },
+      course: { id: createCourseCategoryDto.course_id },
+    });
   }
 
-  findAll() {
-    return `This action returns all courseCategory`;
+  findByCourse(id: string) {
+    return this.courseCategoryRepo.find({ where: { course: { id } } });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} courseCategory`;
-  }
-
-  update(id: number, updateCourseCategoryDto: UpdateCourseCategoryDto) {
-    return `This action updates a #${id} courseCategory`;
+  findByCategory(id: number) {
+    return this.courseCategoryRepo.find({ where: { category: { id } } });
   }
 
   remove(id: number) {
-    return `This action removes a #${id} courseCategory`;
+    return this.courseCategoryRepo.delete({ id });
   }
 }

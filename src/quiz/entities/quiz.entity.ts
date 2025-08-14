@@ -1,5 +1,6 @@
 import { Course } from 'src/course/entities/course.entity';
 import { QuizQuestion } from 'src/quiz_question/entities/quiz_question.entity';
+import { QuizResponse } from 'src/quiz_response/entities/quiz_response.entity';
 import { Score } from 'src/score/entities/score.entity';
 import {
   Column,
@@ -25,7 +26,7 @@ export class Quiz {
   @Column({ type: 'int' })
   order: number;
 
-  @Column({ type: 'time' })
+  @Column({ type: 'time', nullable: true })
   duration: string;
 
   @OneToMany(() => QuizQuestion, (question) => question.quiz)
@@ -33,4 +34,7 @@ export class Quiz {
 
   @OneToMany(() => Score, (score) => score.quiz)
   scores: Score[];
+
+  @OneToMany(() => QuizResponse, (response) => response.quiz)
+  quiz_responses: QuizResponse[];
 }

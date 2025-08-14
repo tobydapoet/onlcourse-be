@@ -1,4 +1,3 @@
-import { Certificate } from 'crypto';
 import { Certification } from 'src/certification/entities/certification.entity';
 import { CourseCategory } from 'src/course_category/entities/course_category.entity';
 import { Enrollment } from 'src/enrollment/entities/enrollment.entity';
@@ -29,6 +28,9 @@ export class Course {
 
   @Column({ type: 'int', default: 0 })
   cost: number;
+
+  @Column({ type: 'boolean', default: false })
+  isDeleted: boolean;
 
   @CreateDateColumn()
   created_at: Date;

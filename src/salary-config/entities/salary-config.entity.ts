@@ -1,6 +1,7 @@
 import { Teacher } from 'src/teacher/entities/teacher.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -9,8 +10,8 @@ import {
 
 @Entity('salary')
 export class SalaryConfig {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @ManyToOne(() => Teacher, (teacher) => teacher.salaries, { eager: true })
   @JoinColumn({ name: 'teacher_id' })
@@ -20,14 +21,20 @@ export class SalaryConfig {
   base_salary: Number;
 
   @Column({ type: 'int', nullable: true })
-  hourly_salary: Number;
+  hourly_rate: Number;
 
   @Column({ type: 'int', nullable: true })
-  session_salary: Number;
+  hours_worked: Number;
 
-  @Column({ type: 'decimal', scale: 2, nullable: true })
+  @Column({ type: 'int', nullable: true })
+  penalty: Number;
+
+  @Column({ type: 'decimal', scale: 2, nullable: true, default: 0 })
   bonus_rate: Number;
 
   @Column({ type: 'decimal', nullable: true })
   total: Number;
+
+  @CreateDateColumn()
+  created_at: Date;
 }

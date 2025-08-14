@@ -15,4 +15,7 @@ export class Score {
 
   @Column({ type: 'decimal', nullable: false })
   total: number;
+
+  @Column({ type: 'int', nullable: false })
+  correct: number;
 }

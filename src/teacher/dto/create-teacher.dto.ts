@@ -1,18 +1,28 @@
-import { IsDate, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsDate, IsEnum, IsInt, IsNotEmpty, IsString } from 'class-validator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
 
 export class CreateTeacherDto {
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   user_id: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsEnum(TeacherRole)
   role_type: TeacherRole;
 
+  @ApiProperty()
   @IsDate()
   hr_date?: Date;
 
+  @ApiProperty()
   @IsString()
   degree?: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsInt()
+  salary: number;
 }

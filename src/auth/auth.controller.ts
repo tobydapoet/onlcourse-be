@@ -11,8 +11,6 @@ import {
   Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { LocalAuthGuard } from './guard/local/local.guard';
 import { RefreshAuthGuard } from './guard/refresh-auth/refresh-auth.guard';
 import { Public } from './decorator/public.decorator';
@@ -43,7 +41,6 @@ export class AuthController {
   @UseGuards(GoogleGuard)
   @Get('google/login')
   loginGoogle(@Req() req) {
-    console.log(req.user);
     return req.user;
   }
 
@@ -52,7 +49,7 @@ export class AuthController {
   @Get('google/callback')
   async googleCallback(@Req() req, @Res() res) {
     const response = await this.authService.validateWithKey(req.id);
-    res.redirect(`http://localhost:3000token=${response.access_token}`);
+    res.redirect(`http://localhost:4000token=${response.access_token}`);
   }
 
   @Roles(Role.TEACHER)
@@ -70,5 +67,18 @@ export class AuthController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.authService.findOne(id);
+  }
+
+  @Public()
+  @Get('otp/:email')
+  sendOtp(@Param('email') email: string) {
+    return this.authService.sendOtp(email);
+  }
+
+  @Public()
+  @Post('reset-password')
+  resetPassword(@Body() body: { email: string; otp: string; newPass: string }) {
+    const { email, otp, newPass } = body;
+    return this.authService.resetPassword(email, otp, newPass);
   }
 }

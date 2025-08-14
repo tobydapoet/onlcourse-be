@@ -1,15 +1,41 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CertificationAchieveService } from './certification_achieve.service';
 import { CreateCertificationAchieveDto } from './dto/create-certification_achieve.dto';
-import { UpdateCertificationAchieveDto } from './dto/update-certification_achieve.dto';
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('certification-achieve')
 export class CertificationAchieveController {
-  constructor(private readonly certificationAchieveService: CertificationAchieveService) {}
+  constructor(
+    private readonly certificationAchieveService: CertificationAchieveService,
+  ) {}
 
   @Post()
-  create(@Body() createCertificationAchieveDto: CreateCertificationAchieveDto) {
-    return this.certificationAchieveService.create(createCertificationAchieveDto);
+  async create(
+    @Body() createCertificationAchieveDto: CreateCertificationAchieveDto,
+  ) {
+    try {
+      const res = await this.certificationAchieveService.create(
+        createCertificationAchieveDto,
+      );
+      return {
+        success: true,
+        data: res,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.message,
+      };
+    }
   }
 
   @Get()
@@ -17,18 +43,25 @@ export class CertificationAchieveController {
     return this.certificationAchieveService.findAll();
   }
 
+  @ApiParam({ name: 'id', type: String })
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.certificationAchieveService.findOne(+id);
+    return this.certificationAchieveService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCertificationAchieveDto: UpdateCertificationAchieveDto) {
-    return this.certificationAchieveService.update(+id, updateCertificationAchieveDto);
-  }
-
+  @ApiParam({ name: 'id', type: String })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.certificationAchieveService.remove(+id);
+  async remove(@Param('id') id: string) {
+    try {
+      await this.certificationAchieveService.remove(id);
+      return {
+        success: true,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.message,
+      };
+    }
   }
 }

@@ -18,7 +18,7 @@ export class Lesson {
   title: string;
 
   @ManyToOne(() => Course, (course) => course.lessons, { eager: true })
-  @JoinColumn({ name: 'lesson_id' })
+  @JoinColumn({ name: 'course_id' })
   course: Course;
 
   @Column({ type: 'int' })

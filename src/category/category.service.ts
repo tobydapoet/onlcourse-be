@@ -1,26 +1,63 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Category } from './entities/category.entity';
+import { Repository } from 'typeorm';
+import { RedisClientType } from '@redis/client';
 
 @Injectable()
 export class CategoryService {
-  create(createCategoryDto: CreateCategoryDto) {
-    return 'This action adds a new category';
+  constructor(
+    @InjectRepository(Category) private categoryRepo: Repository<Category>,
+    @Inject('REDIS_STORAGE') private cacheStorage: RedisClientType,
+  ) {}
+  async create(name: string) {
+    const newCategory = await this.categoryRepo.insert({ name });
+    if (newCategory) {
+      await this.cacheStorage.del('category:all');
+    }
+    return newCategory;
   }
 
-  findAll() {
-    return `This action returns all category`;
+  async findAll() {
+    const cachedKey = `category:all`;
+    const cached = await this.cacheStorage.get(cachedKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+    const allCategoroes = await this.categoryRepo.find();
+    await this.cacheStorage.set(cachedKey, JSON.stringify(allCategoroes), {
+      EX: 60 * 5,
+    });
+    return allCategoroes;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  async findOne(id: number) {
+    const cachedKey = `category:all`;
+    const cached = await this.cacheStorage.get(cachedKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+    const category = await this.categoryRepo.findOne({ where: { id } });
+    await this.cacheStorage.set(cachedKey, JSON.stringify(category), {
+      EX: 60 * 5,
+    });
+    return category;
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(id: number, name: string) {
+    const updatedCategory = await this.categoryRepo.update({ id }, { name });
+    if (updatedCategory) {
+      await this.cacheStorage.del('category:all');
+      await this.cacheStorage.del(`category:${id}`);
+    }
+    return updatedCategory;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: number) {
+    const deletedCategory = await this.categoryRepo.delete({ id });
+    if (deletedCategory) {
+      await this.cacheStorage.del('category:all');
+    }
+    return deletedCategory;
   }
 }

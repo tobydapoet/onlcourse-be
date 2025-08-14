@@ -9,7 +9,6 @@ import { StudentModule } from './student/student.module';
 import { AuthModule } from './auth/auth.module';
 import { LessonModule } from './lesson/lesson.module';
 import { QuizModule } from './quiz/quiz.module';
-import { ChatModule } from './chat/chat.module';
 import { MessageModule } from './message/message.module';
 import { NotificationModule } from './notification/notification.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
@@ -24,11 +23,15 @@ import { QuizOptionModule } from './quiz_option/quiz_option.module';
 import { CertificationAchieveModule } from './certification_achieve/certification_achieve.module';
 import { CacheModule } from './cache/cache.module';
 import { UploadModule } from './upload/upload.module';
+import { QuizResponseModule } from './quiz_response/quiz_response.module';
+import { SocketModule } from './socket/socket.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -46,7 +49,6 @@ import { UploadModule } from './upload/upload.module';
     AuthModule,
     LessonModule,
     QuizModule,
-    ChatModule,
     MessageModule,
     NotificationModule,
     EnrollmentModule,
@@ -61,6 +63,9 @@ import { UploadModule } from './upload/upload.module';
     CertificationAchieveModule,
     CacheModule,
     UploadModule,
+    QuizResponseModule,
+    SocketModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

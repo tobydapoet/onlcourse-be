@@ -19,12 +19,14 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { GoogleStrategy } from './strategy/google.strategy';
 import googleConfig from './config/google.config';
 import { CacheModule } from 'src/cache/cache.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
     UserModule,
     TeacherModule,
     CacheModule,
+    MailModule,
     TypeOrmModule.forFeature([Auth]),
     ConfigModule.forFeature(jwtConfig),
     ConfigModule.forFeature(refreshConfig),

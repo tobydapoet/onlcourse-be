@@ -1,26 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { CreateQuizOptionDto } from './dto/create-quiz_option.dto';
 import { UpdateQuizOptionDto } from './dto/update-quiz_option.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { QuizOption } from './entities/quiz_option.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class QuizOptionService {
-  create(createQuizOptionDto: CreateQuizOptionDto) {
-    return 'This action adds a new quizOption';
+  constructor(
+    @InjectRepository(QuizOption)
+    private quizOptionRepo: Repository<QuizOption>,
+  ) {}
+  async create(createQuizOptionDto: CreateQuizOptionDto) {
+    return this.quizOptionRepo.insert(createQuizOptionDto);
   }
 
-  findAll() {
-    return `This action returns all quizOption`;
+  findByQuizQuestion(id: string) {
+    return this.quizOptionRepo.find({ where: { quiz_question: { id } } });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} quizOption`;
+  findOne(id: string) {
+    return this.quizOptionRepo.findOne({ where: { id } });
   }
 
-  update(id: number, updateQuizOptionDto: UpdateQuizOptionDto) {
-    return `This action updates a #${id} quizOption`;
+  update(id: string, updateQuizOptionDto: UpdateQuizOptionDto) {
+    return this.quizOptionRepo.update({ id }, updateQuizOptionDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} quizOption`;
+  remove(id: string) {
+    return this.quizOptionRepo.delete({ id });
   }
 }

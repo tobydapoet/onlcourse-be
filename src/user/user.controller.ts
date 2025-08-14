@@ -86,6 +86,7 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @Public()
   @Get('search')
   searchClient(@Query('keyword') keyword: string) {
     return this.userService.searchUser(keyword);

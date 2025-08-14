@@ -1,26 +1,55 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Notification } from './entities/notification.entity';
+import { LessThan, Repository } from 'typeorm';
+import { RedisClientType } from 'redis';
 
 @Injectable()
 export class NotificationService {
-  create(createNotificationDto: CreateNotificationDto) {
-    return 'This action adds a new notification';
+  constructor(
+    @InjectRepository(Notification)
+    private notificationRepo: Repository<Notification>,
+    @Inject('REDIS_STORAGE') private cacheStorage: RedisClientType,
+  ) {}
+  async create(createNotificationDto: CreateNotificationDto) {
+    const { student_id, ...rest } = createNotificationDto;
+    const newNotification = this.notificationRepo.create({
+      ...rest,
+      student: { id: student_id },
+    });
+    const savedNotification = await this.notificationRepo.save(newNotification);
+    return savedNotification;
   }
 
-  findAll() {
-    return `This action returns all notification`;
+  async findByStudent(student_id: string) {
+    const cachedKey = `notification-student:${student_id}`;
+    const cached = await this.cacheStorage.get(cachedKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+    const notifications = await this.notificationRepo.find({
+      where: { student: { id: student_id } },
+    });
+    await this.cacheStorage.set(cachedKey, JSON.stringify(notifications), {
+      EX: 60 * 5,
+    });
+    return notifications;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} notification`;
-  }
+  async removeByStudent(student_id: string) {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  update(id: number, updateNotificationDto: UpdateNotificationDto) {
-    return `This action updates a #${id} notification`;
-  }
+    const deletedResult = await this.notificationRepo.delete({
+      student: { id: student_id },
+      created_at: LessThan(thirtyDaysAgo),
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} notification`;
+    if (deletedResult.affected && deletedResult.affected > 0) {
+      await this.cacheStorage.del(`notification-student:${student_id}`);
+    }
+
+    return deletedResult;
   }
 }

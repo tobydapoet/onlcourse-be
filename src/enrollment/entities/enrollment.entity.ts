@@ -22,6 +22,9 @@ export class Enrollment {
   @JoinColumn({ name: 'course_id' })
   course: Course;
 
+  @Column({ type: 'int', nullable: true })
+  last_order: number;
+
   @Column({ type: 'boolean', default: false })
   isCompleted: boolean;
 

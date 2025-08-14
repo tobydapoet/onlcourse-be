@@ -24,6 +24,12 @@ export class Message {
   @Column({ type: 'text' })
   content: string;
 
+  @Column('json', { nullable: true })
+  images: string[];
+
+  @Column({ type: 'boolean', default: false })
+  isReading: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 

@@ -1,5 +1,6 @@
 import { Quiz } from 'src/quiz/entities/quiz.entity';
 import { QuizOption } from 'src/quiz_option/entities/quiz_option.entity';
+import { QuizResponse } from 'src/quiz_response/entities/quiz_response.entity';
 import {
   Column,
   Entity,
@@ -23,4 +24,7 @@ export class QuizQuestion {
 
   @OneToMany(() => QuizOption, (option) => option.quiz_question)
   quiz_options: QuizOption[];
+
+  @OneToMany(() => QuizResponse, (response) => response.quiz_question)
+  quiz_responses: QuizResponse[];
 }

@@ -25,7 +25,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(_: string, __: string, profile: any) {
-    console.log(profile);
     const user = await this.authService.validateGoolgeAccount({
       email: profile.emails?.[0]?.value,
       avatar_url: profile.photos?.[0].value ?? null,
@@ -33,10 +32,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       provider: profile.id,
       provider_type: ProvideType.GOOGLE,
     });
-    console.log(user);
     if (user) {
       const loginRes = await this.authService.validateWithKey(user.id);
-      console.log(loginRes);
       return loginRes;
     }
     return null;

@@ -32,6 +32,9 @@ export class Teacher {
   @Column({ type: 'text' })
   degree: string;
 
+  @Column({ type: 'int', default: 0 })
+  salary: number;
+
   @OneToMany(() => SalaryConfig, (salary) => salary.teacher)
   salaries: SalaryConfig[];
 

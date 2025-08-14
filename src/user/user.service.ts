@@ -53,7 +53,6 @@ export class UserService {
     }
 
     const newUser = this.userRepo.create(createGoogleUserDto);
-    console.log(newUser);
 
     const savedUser = await this.userRepo.save(newUser);
     if (savedUser) {
@@ -62,6 +61,10 @@ export class UserService {
       });
     }
     return savedUser;
+  }
+
+  async changePassword(email: string, password: string) {
+    return this.userRepo.update({ email }, { password });
   }
 
   async update(
@@ -78,9 +81,10 @@ export class UserService {
       if (existingUser.avatar_url) {
         await this.uploadService.deleteImage(existingUser.avatar_url);
       }
-      const uploadResult = await this.uploadService.uploadImage(
-        file.buffer,
+      const uploadResult = await this.uploadService.uploadFile(
+        file,
         'user',
+        'image',
       );
       updateUserDto.avatar_url = uploadResult.url;
     }
@@ -120,6 +124,7 @@ export class UserService {
         role_type: createTeacherDto.role_type,
         degree: createTeacherDto.degree,
         hr_date: createTeacherDto.hr_date,
+        salary: createTeacherDto.salary,
       });
     }
     return savedUser;

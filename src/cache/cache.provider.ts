@@ -13,7 +13,6 @@ export const CacheProvider = {
 
     await client.connect();
 
-    console.log(`redis connected!`);
     return client;
   },
 };

@@ -1,6 +1,4 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './types/jwtPayload';
@@ -15,6 +13,7 @@ import refreshConfig from './config/refresh.config';
 import * as argon2 from 'argon2';
 import { CreateGoogleUser } from 'src/user/dto/create-google.dto';
 import { RedisClientType } from 'redis';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +21,7 @@ export class AuthService {
     private userService: UserService,
     private teacherService: TeacherService,
     private jwtService: JwtService,
+    private mailService: MailService,
     @Inject(refreshConfig.KEY)
     private refreshConfiguration: ConfigType<typeof refreshConfig>,
     @InjectRepository(Auth) private authRepo: Repository<Auth>,
@@ -122,7 +122,6 @@ export class AuthService {
 
   async validateGoolgeAccount(googleAccount: CreateGoogleUser) {
     const account = await this.userService.findByEmail(googleAccount.email);
-    console.log('account:', googleAccount);
     if (account) return account;
     return await this.userService.createWithGoogle(googleAccount);
   }
@@ -156,5 +155,33 @@ export class AuthService {
       EX: 60 * 5,
     });
     return user;
+  }
+
+  async sendOtp(email: string) {
+    const user = await this.userService.findByEmail(email);
+    if (!user || !user.password)
+      throw new UnauthorizedException(
+        "Can't find this email or this email login with other method",
+      );
+    const otp = Math.floor(10000 + Math.random() * 900000).toString();
+    await this.redistStorage.set(`otp:${email}`, otp, { EX: 60 * 5 });
+
+    await this.mailService.sendEmail({
+      text: `Your otp is ${otp} (expired in 5 minutes!)`,
+      sub: 'OTP change password!',
+      to: email,
+    });
+  }
+
+  async resetPassword(email: string, otp: string, newPass: string) {
+    const cachedKey = `otp:${email}`;
+    const storeOtp = await this.redistStorage.get(cachedKey);
+    if (!storeOtp || storeOtp !== otp) {
+      throw new UnauthorizedException('Invalid otp or otp was expire!');
+    }
+    const hashed = await bcrypt.hash(newPass, 10);
+    await this.userService.changePassword(email, hashed);
+    await this.redistStorage.del(cachedKey);
+    return 'Change password success!';
   }
 }

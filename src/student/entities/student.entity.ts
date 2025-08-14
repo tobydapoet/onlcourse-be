@@ -1,5 +1,7 @@
 import { CertificationAchieve } from 'src/certification_achieve/entities/certification_achieve.entity';
 import { Enrollment } from 'src/enrollment/entities/enrollment.entity';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { QuizResponse } from 'src/quiz_response/entities/quiz_response.entity';
 import { Score } from 'src/score/entities/score.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
@@ -34,4 +36,10 @@ export class Student {
 
   @OneToMany(() => CertificationAchieve, (achieve) => achieve.student)
   certification_achieves: CertificationAchieve[];
+
+  @OneToMany(() => QuizResponse, (response) => response.student)
+  quiz_responses: QuizResponse[];
+
+  @OneToMany(() => Notification, (notification) => notification.student)
+  notifications: Notification[];
 }

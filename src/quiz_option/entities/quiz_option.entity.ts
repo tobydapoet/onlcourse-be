@@ -1,9 +1,11 @@
 import { QuizQuestion } from 'src/quiz_question/entities/quiz_question.entity';
+import { QuizResponse } from 'src/quiz_response/entities/quiz_response.entity';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -20,7 +22,11 @@ export class QuizOption {
 
   @ManyToOne(() => QuizQuestion, (question) => question.quiz_options, {
     eager: true,
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'question_id' })
   quiz_question: QuizQuestion;
+
+  @OneToMany(() => QuizResponse, (response) => response.quiz_option)
+  quiz_responses: QuizResponse[];
 }
