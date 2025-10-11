@@ -5,6 +5,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Student } from './entities/student.entity';
 import { Repository } from 'typeorm';
 import { RedisClientType } from 'redis';
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class StudentService {
@@ -12,6 +17,13 @@ export class StudentService {
     @InjectRepository(Student) private studentRepo: Repository<Student>,
     @Inject('REDIS_STORAGE') private readonly cacheStorage: RedisClientType,
   ) {}
+
+  private async clearStudentCache() {
+    const keys = await this.cacheStorage.keys('student:page:*');
+    if (keys.length > 0) {
+      await this.cacheStorage.del(keys);
+    }
+  }
 
   async create(createStudentDto: CreateStudentDto) {
     const { user_id, ...rest } = createStudentDto;
@@ -21,22 +33,26 @@ export class StudentService {
     });
     const savedStudent = await this.studentRepo.save(newStudent);
     if (savedStudent) {
-      await this.cacheStorage.del(`student:all`);
+      await this.clearStudentCache();
     }
     return savedStudent;
   }
 
-  async findAll() {
-    const cachedKey = 'student:all';
-    const cached = await this.cacheStorage.get(cachedKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
-    const allStudents = this.studentRepo.find();
-    await this.cacheStorage.set(cachedKey, JSON.stringify(cached), {
+  async findAll(options: IPaginationOptions): Promise<Pagination<Student>> {
+    const cacheKey = `student:page:${options.page}:limit:${options.limit}`;
+    const cached = await this.cacheStorage.get(cacheKey);
+
+    if (cached) return JSON.parse(cached);
+
+    const queryBuilder = this.studentRepo.createQueryBuilder('student');
+
+    const result = await paginate<Student>(queryBuilder, options);
+
+    await this.cacheStorage.set(cacheKey, JSON.stringify(result), {
       EX: 60 * 5,
     });
-    return allStudents;
+
+    return result;
   }
 
   async findOne(id: string) {
@@ -61,7 +77,7 @@ export class StudentService {
       updateStudentDto,
     );
     if (updatedStudent) {
-      await this.cacheStorage.del(`student:all`);
+      await this.clearStudentCache();
       await this.cacheStorage.del(`student:${id}`);
     }
     return updatedStudent;

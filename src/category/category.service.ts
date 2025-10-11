@@ -3,6 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
 import { Repository } from 'typeorm';
 import { RedisClientType } from '@redis/client';
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class CategoryService {
@@ -10,29 +15,44 @@ export class CategoryService {
     @InjectRepository(Category) private categoryRepo: Repository<Category>,
     @Inject('REDIS_STORAGE') private cacheStorage: RedisClientType,
   ) {}
-  async create(name: string) {
-    const newCategory = await this.categoryRepo.insert({ name });
-    if (newCategory) {
-      await this.cacheStorage.del('category:all');
+
+  private async clearCategoryCache() {
+    const keys = await this.cacheStorage.keys('category:page:*');
+    if (keys.length > 0) {
+      await this.cacheStorage.del(keys);
     }
-    return newCategory;
   }
 
-  async findAll() {
-    const cachedKey = `category:all`;
+  async create(name: string) {
+    const newCategory = this.categoryRepo.create({ name });
+    const saved = await this.categoryRepo.save(newCategory);
+    if (saved) {
+      await this.clearCategoryCache();
+    }
+    return saved;
+  }
+
+  async findAll(options: IPaginationOptions): Promise<Pagination<Category>> {
+    const cachedKey = `category:page:${options.page}:limit:${options.limit}`;
     const cached = await this.cacheStorage.get(cachedKey);
+
     if (cached) {
       return JSON.parse(cached);
     }
-    const allCategoroes = await this.categoryRepo.find();
-    await this.cacheStorage.set(cachedKey, JSON.stringify(allCategoroes), {
+
+    const queryBuilder = this.categoryRepo.createQueryBuilder('category');
+
+    const result = await paginate<Category>(queryBuilder, options);
+
+    await this.cacheStorage.set(cachedKey, JSON.stringify(result), {
       EX: 60 * 5,
     });
-    return allCategoroes;
+
+    return result;
   }
 
   async findOne(id: number) {
-    const cachedKey = `category:all`;
+    const cachedKey = `category:${id}`;
     const cached = await this.cacheStorage.get(cachedKey);
     if (cached) {
       return JSON.parse(cached);
@@ -47,7 +67,7 @@ export class CategoryService {
   async update(id: number, name: string) {
     const updatedCategory = await this.categoryRepo.update({ id }, { name });
     if (updatedCategory) {
-      await this.cacheStorage.del('category:all');
+      await this.clearCategoryCache();
       await this.cacheStorage.del(`category:${id}`);
     }
     return updatedCategory;
@@ -56,7 +76,7 @@ export class CategoryService {
   async remove(id: number) {
     const deletedCategory = await this.categoryRepo.delete({ id });
     if (deletedCategory) {
-      await this.cacheStorage.del('category:all');
+      await this.clearCategoryCache();
     }
     return deletedCategory;
   }

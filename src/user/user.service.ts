@@ -11,6 +11,11 @@ import { CreateGoogleUser } from './dto/create-google.dto';
 import { RedisClientType } from 'redis';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UploadService } from 'src/upload/upload.service';
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class UserService {
@@ -91,8 +96,10 @@ export class UserService {
 
     const updatedUser = await this.userRepo.update({ id }, updateUserDto);
     if (updatedUser) {
-      await this.cacheStorage.del(`user:all`);
-      await this.cacheStorage.del(`user:${id}`);
+      const keys = await this.cacheStorage.keys('score:*');
+      if (keys.length > 0) {
+        await this.cacheStorage.del(keys);
+      }
     }
     return await this.userRepo.findOne({ where: { id } });
   }
@@ -117,6 +124,7 @@ export class UserService {
       email: createTeacherDto.email,
       role: Role.TEACHER,
     });
+
     const savedUser = await this.userRepo.save(newUser);
     if (savedUser) {
       await this.teacherService.create({
@@ -126,21 +134,29 @@ export class UserService {
         hr_date: createTeacherDto.hr_date,
         salary: createTeacherDto.salary,
       });
+
+      const keys = await this.cacheStorage.keys('user:*');
+      if (keys.length > 0) {
+        await this.cacheStorage.del(keys);
+      }
     }
     return savedUser;
   }
 
-  async findAll() {
-    const cachedKey = `user:all`;
-    const cached = await this.cacheStorage.get(cachedKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
-    const allUser = await this.userRepo.find();
-    await this.cacheStorage.set(cachedKey, JSON.stringify(allUser), {
+  async findAll(options: IPaginationOptions): Promise<Pagination<User>> {
+    const cacheKey = `user:page:${options.page}:limit:${options.limit}`;
+    const cached = await this.cacheStorage.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    const queryBuilder = this.userRepo.createQueryBuilder('user');
+    queryBuilder.orderBy('user.created_at', 'DESC');
+
+    const result = await paginate<User>(queryBuilder, options);
+
+    await this.cacheStorage.set(cacheKey, JSON.stringify(result), {
       EX: 60 * 5,
     });
-    return allUser;
+    return result;
   }
 
   findByEmail(email: string) {
@@ -148,8 +164,6 @@ export class UserService {
       where: { email },
     });
   }
-
-  async updateStudentUser() {}
 
   async findOne(id: string) {
     const cachedKey = `user:${id}`;
@@ -166,13 +180,26 @@ export class UserService {
     return user;
   }
 
-  async searchUser(keyword: string) {
-    return await this.userRepo.find({
-      where: [
-        { email: Like(`%${keyword}%`) },
-        { name: Like(`%${keyword}%`) },
-        { phone: Like(`%${keyword}%`) },
-      ],
+  async searchUser(
+    keyword: string,
+    options: IPaginationOptions,
+  ): Promise<Pagination<User>> {
+    const cacheKey = `user:search:${keyword}:page:${options.page}:limit:${options.limit}`;
+    const cached = await this.cacheStorage.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    const queryBuilder = this.userRepo.createQueryBuilder('user');
+    queryBuilder
+      .where('user.email ILIKE :keyword', { keyword: `%${keyword}%` })
+      .orWhere('user.name ILIKE :keyword', { keyword: `%${keyword}%` })
+      .orWhere('user.phone ILIKE :keyword', { keyword: `%${keyword}%` })
+      .orderBy('user.created_at', 'DESC');
+
+    const result = await paginate<User>(queryBuilder, options);
+
+    await this.cacheStorage.set(cacheKey, JSON.stringify(result), {
+      EX: 60 * 5,
     });
+    return result;
   }
 }

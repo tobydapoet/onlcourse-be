@@ -7,6 +7,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Put,
+  Query,
 } from '@nestjs/common';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
@@ -17,6 +18,8 @@ import { Roles } from 'src/auth/decorator/role.decorator';
 import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { Course } from './entities/course.entity';
 
 @Controller('course')
 export class CourseController {
@@ -33,21 +36,24 @@ export class CourseController {
     try {
       const res = await this.courseService.create(createCourseDto, file);
       return {
-        success: false,
-        data: res,
+        id: res.id,
+        message: 'Create course success!',
       };
     } catch (err) {
       return {
-        success: true,
-        error: err,
+        message: err.message,
       };
     }
   }
 
   @ApiBearerAuth()
   @Get()
-  findAll() {
-    return this.courseService.findAll();
+  findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ): Promise<Pagination<Course>> {
+    limit = limit > 50 ? 50 : limit;
+    return this.courseService.findAll({ page, limit });
   }
 
   @ApiBearerAuth()
@@ -75,13 +81,11 @@ export class CourseController {
     try {
       const res = await this.courseService.update(id, updateCourseDto, file);
       return {
-        success: true,
-        data: res,
+        message: 'Update course success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err?.message,
+        message: err.message,
       };
     }
   }
@@ -91,16 +95,13 @@ export class CourseController {
   @Put('delete/:id')
   async remove(@Param('id') id: string) {
     try {
-      const res = await this.courseService.remove(id);
-
+      await this.courseService.remove(id);
       return {
-        success: true,
-        data: res,
+        message: 'Delete success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err?.message,
+        message: err?.message,
       };
     }
   }

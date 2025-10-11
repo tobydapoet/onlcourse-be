@@ -8,6 +8,11 @@ import { RedisClientType } from '@redis/client';
 import { UploadService } from 'src/upload/upload.service';
 import { QuizService } from 'src/quiz/quiz.service';
 import { LessonService } from 'src/lesson/lesson.service';
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class CourseService {
@@ -18,6 +23,14 @@ export class CourseService {
     private quizService: QuizService,
     private lessonService: LessonService,
   ) {}
+
+  private async clearCourseCache() {
+    const keys = await this.cacheStorage.keys('course:page:*');
+    if (keys.length > 0) {
+      await this.cacheStorage.del(keys);
+    }
+  }
+
   async create(createCourseDto: CreateCourseDto, file?: Express.Multer.File) {
     if (file) {
       const uploadResult = await this.uploadService.uploadFile(
@@ -27,24 +40,26 @@ export class CourseService {
       );
       createCourseDto.thumbnail_url = uploadResult.url;
     }
-    const newCourse = await this.courseRepo.insert(createCourseDto);
-    if (newCourse) {
-      await this.cacheStorage.del(`course:all`);
+    const newCourse = this.courseRepo.create(createCourseDto);
+    const saved = await this.courseRepo.save(newCourse);
+    if (saved) {
+      await this.clearCourseCache();
     }
-    return newCourse;
+    return saved;
   }
 
-  async findAll() {
-    const cachedKey = 'course:all';
+  async findAll(options: IPaginationOptions): Promise<Pagination<Course>> {
+    const cachedKey = `course:page:${options.page}:limit:${options.limit}`;
     const cached = await this.cacheStorage.get(cachedKey);
     if (cached) {
       return JSON.parse(cached);
     }
-    const allCourses = await this.courseRepo.find();
-    await this.cacheStorage.set(cachedKey, JSON.stringify(allCourses), {
+    const queryBuilder = this.courseRepo.createQueryBuilder('course');
+    const result = await paginate(queryBuilder, options);
+    await this.cacheStorage.set(cachedKey, JSON.stringify(result), {
       EX: 60 * 5,
     });
-    return allCourses;
+    return result;
   }
 
   async findOne(id: string) {
@@ -113,7 +128,7 @@ export class CourseService {
     }
     const updatedCourse = await this.courseRepo.update({ id }, updateCourseDto);
     if (updatedCourse) {
-      await this.cacheStorage.del(`course:all`);
+      await this.clearCourseCache();
       await this.cacheStorage.del(`course:${id}`);
     }
     return await this.findOne(id);
@@ -129,7 +144,7 @@ export class CourseService {
       { isDeleted: true },
     );
     if (updatedCourse) {
-      await this.cacheStorage.del(`course:all`);
+      await this.clearCourseCache();
       await this.cacheStorage.del(`course:${id}`);
     }
   }

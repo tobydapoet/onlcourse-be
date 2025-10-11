@@ -1,7 +1,17 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { ScoreService } from './score.service';
 import { CreateScoreDto } from './dto/create-score.dto';
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { Score } from './entities/score.entity';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @ApiBearerAuth()
 @Controller('score')
@@ -12,21 +22,25 @@ export class ScoreController {
   async create(@Body() createScoreDto: CreateScoreDto) {
     try {
       const res = await this.scoreService.create(createScoreDto);
-      return {
-        success: true,
-        data: res,
-      };
+      return { message: 'Thank you for your answer!', id: res.id };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }
 
   @Get()
-  findAll() {
-    return this.scoreService.findAll();
+  findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ): Promise<Pagination<Score>> {
+    limit = limit > 50 ? 50 : limit;
+    return this.scoreService.findAll({
+      page,
+      limit,
+      route: '/score',
+    });
   }
 
   @ApiParam({ name: 'id', type: String })
@@ -53,12 +67,11 @@ export class ScoreController {
     try {
       await this.scoreService.remove(id);
       return {
-        success: true,
+        message: 'Delete score success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }

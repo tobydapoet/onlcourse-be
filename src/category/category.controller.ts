@@ -6,11 +6,14 @@ import {
   Put,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { Roles } from 'src/auth/decorator/role.decorator';
 import { Role } from 'src/auth/enums/role.enum';
 import { ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { Category } from './entities/category.entity';
 
 @ApiBearerAuth()
 @Controller('category')
@@ -32,20 +35,22 @@ export class CategoryController {
     try {
       const res = await this.categoryService.create(name);
       return {
-        success: true,
-        data: res,
+        id: res.id,
       };
     } catch (err) {
       return {
-        success: false,
-        error: err,
+        messsage: err.message,
       };
     }
   }
 
   @Get()
-  findAll() {
-    return this.categoryService.findAll();
+  findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ): Promise<Pagination<Category>> {
+    limit = limit > 50 ? 50 : limit;
+    return this.categoryService.findAll({ page, limit });
   }
 
   @Get(':id')
@@ -66,15 +71,13 @@ export class CategoryController {
   })
   async update(@Param('id') id: number, @Body() name: string) {
     try {
-      const res = await this.categoryService.update(id, name);
+      await this.categoryService.update(id, name);
       return {
-        success: true,
-        data: res,
+        message: 'Update category success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err,
+        message: err.message,
       };
     }
   }
@@ -86,12 +89,11 @@ export class CategoryController {
     try {
       await this.categoryService.remove(id);
       return {
-        success: true,
+        message: 'Delete category success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err,
+        message: err.message,
       };
     }
   }

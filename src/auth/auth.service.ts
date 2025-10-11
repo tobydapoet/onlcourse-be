@@ -46,8 +46,6 @@ export class AuthService {
       throw new UnauthorizedException("Can't find user!");
     }
 
-    await this.redistStorage.del(`session:all`);
-
     const session = this.authRepo.create({
       user: { id: existing.id },
       hashedToken: '',
@@ -129,19 +127,6 @@ export class AuthService {
   async logout(id: string) {
     await this.redistStorage.del(`session:${id}`);
     return this.authRepo.delete({ id });
-  }
-
-  async findAll() {
-    const cachedKey = `session:all`;
-    const cached = await this.redistStorage.get(cachedKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
-    const users = await this.authRepo.find();
-    await this.redistStorage.set(cachedKey, JSON.stringify(users), {
-      EX: 60 * 5,
-    });
-    return users;
   }
 
   async findOne(id: string) {

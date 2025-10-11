@@ -4,6 +4,11 @@ import { Certification } from './entities/certification.entity';
 import { Repository } from 'typeorm';
 import { UploadService } from 'src/upload/upload.service';
 import { RedisClientType } from 'redis';
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class CertificationService {
@@ -13,6 +18,13 @@ export class CertificationService {
     private uploadService: UploadService,
     @Inject('REDIS_STORAGE') private cacheStorage: RedisClientType,
   ) {}
+
+  private async clearCertificationCache() {
+    const keys = await this.cacheStorage.keys('certification:page:*');
+    if (keys.length > 0) {
+      await this.cacheStorage.del(keys);
+    }
+  }
 
   async create(coursed_id: string, file: Express.Multer.File) {
     const fileUploaded = await this.uploadService.uploadFile(
@@ -29,21 +41,25 @@ export class CertificationService {
     });
     const savedCerification =
       await this.cerificationRepo.save(newCertification);
-    await this.cacheStorage.del('certification:all');
+    await this.clearCertificationCache();
     return savedCerification;
   }
 
-  async findAll() {
-    const cachedKey = `certification:all`;
+  async findAll(
+    options: IPaginationOptions,
+  ): Promise<Pagination<Certification>> {
+    const cachedKey = `certification:page${options.page}:limit:${options.limit}`;
     const cached = await this.cacheStorage.get(cachedKey);
     if (cached) {
       return JSON.parse(cached);
     }
-    const allCerifications = await this.cerificationRepo.find();
-    await this.cacheStorage.set(cachedKey, JSON.stringify(allCerifications), {
+    const queryBuilder =
+      this.cerificationRepo.createQueryBuilder('certifcation');
+    const result = await paginate<Certification>(queryBuilder, options);
+    await this.cacheStorage.set(cachedKey, JSON.stringify(result), {
       EX: 60 * 5,
     });
-    return allCerifications;
+    return result;
   }
 
   async findOne(id: string) {
@@ -82,7 +98,7 @@ export class CertificationService {
       { course: { id: coursed_id }, file_url },
     );
     if (updatedCertification) {
-      await this.cacheStorage.del('certification:all');
+      await this.clearCertificationCache();
       await this.cacheStorage.del(`certification:${id}`);
     }
     return this.cerificationRepo.findOne({ where: { id } });

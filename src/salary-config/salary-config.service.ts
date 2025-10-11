@@ -7,6 +7,11 @@ import { Repository } from 'typeorm';
 import { RedisClientType } from 'redis';
 import { TeacherService } from 'src/teacher/teacher.service';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class SalaryConfigService {
@@ -16,6 +21,14 @@ export class SalaryConfigService {
     @Inject('REDIS_STORAGE') private cacheStorage: RedisClientType,
     private teacherService: TeacherService,
   ) {}
+
+  private async clearSalaryCache() {
+    const keys = await this.cacheStorage.keys('salary:*');
+    if (keys.length > 0) {
+      await this.cacheStorage.del(keys);
+    }
+  }
+
   async create(createSalaryConfigDto: CreateSalaryConfigDto) {
     const teacher = await this.teacherService.findOne(
       createSalaryConfigDto.teacher_id,
@@ -47,26 +60,30 @@ export class SalaryConfigService {
     }
     const savedSalary = await this.salaryConfigRepo.save(newConfig);
     if (savedSalary) {
-      await this.cacheStorage.del(`salary:all`);
+      await this.clearSalaryCache();
     }
     return savedSalary;
   }
 
-  async findAll() {
-    const cachedKey = `salary:all`;
-    const cached = await this.cacheStorage.get(cachedKey);
+  async findAll(
+    options: IPaginationOptions,
+  ): Promise<Pagination<SalaryConfig>> {
+    const cacheKey = `salary:page:${options.page}:limit:${options.limit}`;
+    const cached = await this.cacheStorage.get(cacheKey);
     if (cached) {
       return JSON.parse(cached);
     }
-    const allSalaries = await this.salaryConfigRepo.find({
-      order: {
-        created_at: 'DESC',
-      },
-    });
-    await this.cacheStorage.set(cachedKey, JSON.stringify(allSalaries), {
+
+    const queryBuilder = this.salaryConfigRepo.createQueryBuilder('salary');
+    queryBuilder.orderBy('salary.created_at', 'DESC');
+
+    const result = await paginate<SalaryConfig>(queryBuilder, options);
+
+    await this.cacheStorage.set(cacheKey, JSON.stringify(result), {
       EX: 60 * 5,
     });
-    return allSalaries;
+
+    return result;
   }
 
   async findOne(id: string) {
@@ -97,8 +114,7 @@ export class SalaryConfigService {
       updateSalaryConfigDto,
     );
     if (updateSalaryConfigDto) {
-      await this.cacheStorage.del(`salary:all`);
-      await this.cacheStorage.del(`salary:${id}`);
+      await this.clearSalaryCache();
     }
     return updatedConfig;
   }
@@ -112,7 +128,7 @@ export class SalaryConfigService {
     }
     const deletedConfig = await this.salaryConfigRepo.delete({ id });
     if (deletedConfig) {
-      await this.cacheStorage.del('salary:all');
+      await this.clearSalaryCache();
     }
     return deletedConfig;
   }

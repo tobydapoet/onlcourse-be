@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { SalaryConfigService } from './salary-config.service';
 import { CreateSalaryConfigDto } from './dto/create-salary-config.dto';
@@ -15,6 +16,8 @@ import { Role } from 'src/auth/enums/role.enum';
 import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { SalaryConfig } from './entities/salary-config.entity';
 
 @ApiBearerAuth()
 @Controller('salary-config')
@@ -28,20 +31,26 @@ export class SalaryConfigController {
     try {
       const res = await this.salaryConfigService.create(createSalaryConfigDto);
       return {
-        success: true,
-        data: res,
+        data: res.id,
+        message: 'Create salary config success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }
 
   @Get()
-  findAll() {
-    return this.salaryConfigService.findAll();
+  async findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ): Promise<Pagination<SalaryConfig>> {
+    limit = limit > 50 ? 50 : limit;
+    return this.salaryConfigService.findAll({
+      page,
+      limit,
+    });
   }
 
   @ApiParam({ name: 'id', type: String })
@@ -62,13 +71,11 @@ export class SalaryConfigController {
         updateSalaryConfigDto,
       );
       return {
-        success: true,
-        data: res,
+        message: 'Update salary config success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }
@@ -79,12 +86,11 @@ export class SalaryConfigController {
     try {
       await this.salaryConfigService.remove(id);
       return {
-        success: true,
+        message: 'Delete salary config success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }

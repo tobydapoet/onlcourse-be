@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Query } from '@nestjs/common';
 import { TeacherService } from './teacher.service';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { ApiParam } from '@nestjs/swagger';
@@ -8,8 +8,9 @@ export class TeacherController {
   constructor(private readonly teacherService: TeacherService) {}
 
   @Get()
-  findAll() {
-    return this.teacherService.findAll();
+  findAll(@Query('page') page = 1, @Query('limit') limit = 10) {
+    limit = limit > 50 ? 50 : limit;
+    return this.teacherService.findAll({ page, limit });
   }
 
   @ApiParam({ name: 'id', type: String })
@@ -27,13 +28,11 @@ export class TeacherController {
     try {
       const res = await this.teacherService.update(id, updateTeacherDto);
       return {
-        success: true,
-        data: res,
+        message: 'Update teacher success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }

@@ -22,13 +22,11 @@ export class QuizResponseController {
     try {
       const res = await this.quizResponseService.create(createQuizResponseDto);
       return {
-        success: true,
-        data: res,
+        data: res.id,
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }
@@ -61,13 +59,11 @@ export class QuizResponseController {
     try {
       const res = await this.quizResponseService.update(id, option_id);
       return {
-        success: true,
         data: res,
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }
@@ -78,12 +74,11 @@ export class QuizResponseController {
     try {
       await this.quizResponseService.remove(id);
       return {
-        success: true,
+        message: 'Delete response success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }

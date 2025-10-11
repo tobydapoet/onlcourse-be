@@ -13,10 +13,11 @@ export class CourseCategoryService {
     @Inject('REDIS_STORAGE') private cacheStorage: RedisClientType,
   ) {}
   async create(createCourseCategoryDto: CreateCourseCategoryDto) {
-    return this.courseCategoryRepo.insert({
+    const newCourseCategory = this.courseCategoryRepo.create({
       category: { id: createCourseCategoryDto.category_id },
       course: { id: createCourseCategoryDto.course_id },
     });
+    return await this.courseCategoryRepo.save(newCourseCategory);
   }
 
   findByCourse(id: string) {

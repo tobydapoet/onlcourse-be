@@ -5,6 +5,11 @@ import { Repository } from 'typeorm';
 import { Score } from './entities/score.entity';
 import { QuizResponseService } from 'src/quiz_response/quiz_response.service';
 import { RedisClientType } from 'redis';
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class ScoreService {
@@ -34,25 +39,33 @@ export class ScoreService {
     });
     const savedScore = await this.scoreRepo.save(newScore);
     if (savedScore) {
-      await this.cacheStorage.del(`score:all`);
-      await this.cacheStorage.del(`score:${savedScore.id}`);
-      await this.cacheStorage.del(`score-student:${savedScore.student.id}`);
-      await this.cacheStorage.del(`score-quiz:${savedScore.quiz.id}`);
+      const keys = await this.cacheStorage.keys('score:*');
+      if (keys.length > 0) {
+        await this.cacheStorage.del(keys);
+      }
     }
     return savedScore;
   }
 
-  async findAll() {
-    const cachedKey = `score:all`;
-    const cached = await this.cacheStorage.get(cachedKey);
+  async findAll(options: IPaginationOptions): Promise<Pagination<Score>> {
+    const cacheKey = `score:page:${options.page}:limit:${options.limit}`;
+    const cached = await this.cacheStorage.get(cacheKey);
     if (cached) {
       return JSON.parse(cached);
     }
-    const allScores = await this.scoreRepo.find();
-    await this.cacheStorage.set(cachedKey, JSON.stringify(allScores), {
+
+    const queryBuilder = this.scoreRepo.createQueryBuilder('score');
+    queryBuilder
+      .leftJoinAndSelect('score.student', 'student')
+      .leftJoinAndSelect('score.quiz', 'quiz');
+
+    const result = await paginate<Score>(queryBuilder, options);
+
+    await this.cacheStorage.set(cacheKey, JSON.stringify(result), {
       EX: 60 * 5,
     });
-    return allScores;
+
+    return result;
   }
 
   async findOne(id: string) {
@@ -105,10 +118,10 @@ export class ScoreService {
     }
     const deletedScore = await this.scoreRepo.delete({ id });
     if (deletedScore) {
-      await this.cacheStorage.del(`score:all`);
-      await this.cacheStorage.del(`score:${id}`);
-      await this.cacheStorage.del(`score-student:${existingScore.student.id}`);
-      await this.cacheStorage.del(`score-quiz:${existingScore.quiz.id}`);
+      const keys = await this.cacheStorage.keys('score:*');
+      if (keys.length > 0) {
+        await this.cacheStorage.del(keys);
+      }
     }
     return deletedScore;
   }

@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   Put,
+  Query,
 } from '@nestjs/common';
 import { EnrollmentService } from './enrollment.service';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
@@ -14,6 +15,8 @@ import { Roles } from 'src/auth/decorator/role.decorator';
 import { Role } from 'src/auth/enums/role.enum';
 import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { Enrollment } from './entities/enrollment.entity';
 
 @ApiBearerAuth()
 @Controller('enrollment')
@@ -27,20 +30,22 @@ export class EnrollmentController {
     try {
       const res = await this.enrollmentService.create(createEnrollmentDto);
       return {
-        success: true,
-        data: res,
+        message: 'Create enrollment success!',
+        id: res?.id,
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }
 
   @Get()
-  findAll() {
-    return this.enrollmentService.findAll();
+  findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ): Promise<Pagination<Enrollment>> {
+    return this.enrollmentService.findAll({ page, limit });
   }
 
   @ApiParam({ name: 'id', type: String })
@@ -55,15 +60,13 @@ export class EnrollmentController {
   @Put(':id')
   async updateOrder(@Param('id') id: string) {
     try {
-      const res = await this.enrollmentService.updateOrder(id);
+      await this.enrollmentService.updateOrder(id);
       return {
-        success: true,
-        data: res,
+        message: 'Update enrollment success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }
@@ -76,12 +79,11 @@ export class EnrollmentController {
     try {
       await this.enrollmentService.remove(id);
       return {
-        success: true,
+        message: 'Delete enrollment success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }

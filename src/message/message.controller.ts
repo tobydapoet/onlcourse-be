@@ -59,13 +59,11 @@ export class MessageController {
     try {
       const res = await this.messageService.create(createChatDto, files);
       return {
-        success: true,
         res: res,
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }
@@ -79,13 +77,11 @@ export class MessageController {
     try {
       const res = await this.messageService.update(id, updateChatDto);
       return {
-        success: true,
         res: res,
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }

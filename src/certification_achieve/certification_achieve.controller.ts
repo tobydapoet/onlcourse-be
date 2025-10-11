@@ -6,10 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { CertificationAchieveService } from './certification_achieve.service';
 import { CreateCertificationAchieveDto } from './dto/create-certification_achieve.dto';
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { Certification } from 'src/certification/entities/certification.entity';
+import { CertificationAchieve } from './entities/certification_achieve.entity';
 
 @ApiBearerAuth()
 @Controller('certification-achieve')
@@ -27,20 +31,22 @@ export class CertificationAchieveController {
         createCertificationAchieveDto,
       );
       return {
-        success: true,
-        data: res,
+        message: 'Create certification success!',
+        id: res?.id,
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }
 
   @Get()
-  findAll() {
-    return this.certificationAchieveService.findAll();
+  findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ): Promise<Pagination<CertificationAchieve>> {
+    return this.certificationAchieveService.findAll({ page, limit });
   }
 
   @ApiParam({ name: 'id', type: String })
@@ -55,12 +61,11 @@ export class CertificationAchieveController {
     try {
       await this.certificationAchieveService.remove(id);
       return {
-        success: true,
+        message: 'Delete certification success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }

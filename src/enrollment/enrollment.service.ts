@@ -8,6 +8,11 @@ import { NotificationService } from 'src/notification/notification.service';
 import { CourseService } from 'src/course/course.service';
 import { NotifyType } from 'src/notification/types/notifyType';
 import { Course } from 'src/course/entities/course.entity';
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class EnrollmentService {
@@ -18,6 +23,14 @@ export class EnrollmentService {
     private courseService: CourseService,
     @Inject('REDIS_STORAGE') private cacheStorage: RedisClientType,
   ) {}
+
+  private async clearEnrollmentCache() {
+    const keys = await this.cacheStorage.keys('enrollment:page:*');
+    if (keys.length > 0) {
+      await this.cacheStorage.del(keys);
+    }
+  }
+
   async create(createEnrollmentDto: CreateEnrollmentDto) {
     const newEnrollment = this.enrollmentRepo.create({
       course: { id: createEnrollmentDto.course_id },
@@ -25,7 +38,7 @@ export class EnrollmentService {
     });
     const savedEnrollment = await this.enrollmentRepo.save(newEnrollment);
     if (savedEnrollment) {
-      await this.cacheStorage.del(`enrollment:all`);
+      await this.clearEnrollmentCache();
       const newNotification = await this.notificationService.create({
         student_id: createEnrollmentDto.student_id,
         type: NotifyType.SUCCESS_ENROLL,
@@ -37,17 +50,18 @@ export class EnrollmentService {
     return null;
   }
 
-  async findAll() {
-    const cachedKey = `enrollment:all`;
+  async findAll(options: IPaginationOptions): Promise<Pagination<Enrollment>> {
+    const cachedKey = `enrollment:page:${options.page}:limit:${options.limit}`;
     const cached = await this.cacheStorage.get(cachedKey);
     if (cached) {
       return JSON.parse(cached);
     }
-    const allEnrollments = await this.enrollmentRepo.find();
-    await this.cacheStorage.set(cachedKey, JSON.stringify(allEnrollments), {
+    const queryBuilder = this.enrollmentRepo.createQueryBuilder('enrollment');
+    const result = await paginate(queryBuilder, options);
+    await this.cacheStorage.set(cachedKey, JSON.stringify(result), {
       EX: 60 * 5,
     });
-    return allEnrollments;
+    return result;
   }
 
   async findOne(id: string) {
@@ -98,10 +112,9 @@ export class EnrollmentService {
       { id },
       { last_order: newOrder, isCompleted },
     );
-    await Promise.all([
-      this.cacheStorage.del(`enrollment:all`),
-      this.cacheStorage.del(`enrollment:${id}`),
-    ]);
+
+    await this.cacheStorage.del(`enrollment:${id}`);
+    await this.clearEnrollmentCache();
 
     return { last_order: newOrder, isCompleted, notification };
   }
@@ -109,7 +122,7 @@ export class EnrollmentService {
   async remove(id: string) {
     const deletedEnrollment = await this.enrollmentRepo.delete({ id });
     if (deletedEnrollment) {
-      await this.cacheStorage.del(`enrollment:all`);
+      await this.clearEnrollmentCache();
       await this.cacheStorage.del(`enrollment:${id}`);
     }
     return deletedEnrollment;

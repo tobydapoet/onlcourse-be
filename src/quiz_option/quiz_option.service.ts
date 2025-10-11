@@ -12,7 +12,8 @@ export class QuizOptionService {
     private quizOptionRepo: Repository<QuizOption>,
   ) {}
   async create(createQuizOptionDto: CreateQuizOptionDto) {
-    return this.quizOptionRepo.insert(createQuizOptionDto);
+    const newQuizOptions = this.quizOptionRepo.create(createQuizOptionDto);
+    return await this.quizOptionRepo.save(newQuizOptions);
   }
 
   findByQuizQuestion(id: string) {

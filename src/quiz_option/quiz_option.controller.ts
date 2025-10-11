@@ -21,11 +21,10 @@ export class QuizOptionController {
     try {
       const res = await this.quizOptionService.create(createQuizOptionDto);
       return {
-        success: true,
         data: res,
       };
     } catch (err) {
-      return { success: false, error: err.message };
+      return { message: err.message };
     }
   }
 
@@ -50,11 +49,10 @@ export class QuizOptionController {
     try {
       const res = await this.quizOptionService.update(id, updateQuizOptionDto);
       return {
-        success: true,
         data: res,
       };
     } catch (err) {
-      return { success: false, error: err.message };
+      return { message: err.message };
     }
   }
 
@@ -64,10 +62,10 @@ export class QuizOptionController {
     try {
       await this.quizOptionService.remove(id);
       return {
-        success: true,
+        message: 'Delete option success!',
       };
     } catch (err) {
-      return { success: false, error: err.message };
+      return { message: err.message };
     }
   }
 }

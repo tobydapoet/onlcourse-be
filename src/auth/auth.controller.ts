@@ -52,13 +52,6 @@ export class AuthController {
     res.redirect(`http://localhost:4000token=${response.access_token}`);
   }
 
-  @Roles(Role.TEACHER)
-  @TeacherPosition(TeacherRole.ADMIN)
-  @Get()
-  findAll() {
-    return this.authService.findAll();
-  }
-
   @Delete(':id')
   logout(@Param('id') id: string) {
     return this.authService.logout(id);

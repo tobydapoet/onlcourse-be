@@ -19,6 +19,8 @@ import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { IPaginationOptions, Pagination } from 'nestjs-typeorm-paginate';
+import { User } from './entities/user.entity';
 
 @Controller('user')
 export class UserController {
@@ -30,12 +32,11 @@ export class UserController {
     try {
       const res = await this.userService.create(createUserDto);
       return {
-        success: true,
-        data: res,
+        id: res.id,
+        message: 'Register success!',
       };
     } catch (err) {
       return {
-        success: false,
         error: err.message,
       };
     }
@@ -48,13 +49,12 @@ export class UserController {
     try {
       const res = await this.userService.createTeacher(createTeacherUserDto);
       return {
-        success: true,
-        data: res,
+        id: res.id,
+        message: 'Create teacher success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }
@@ -68,28 +68,36 @@ export class UserController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     try {
-      const res = await this.userService.update(id, updateUserDto, file);
+      await this.userService.update(id, updateUserDto, file);
       return {
-        success: true,
-        data: res,
+        message: 'Create teacher success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }
 
+  @Roles(Role.TEACHER)
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  async findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ): Promise<Pagination<any>> {
+    limit = Math.min(limit, 50);
+    return this.userService.findAll({ page, limit });
   }
 
-  @Public()
+  @Roles(Role.TEACHER)
   @Get('search')
-  searchClient(@Query('keyword') keyword: string) {
-    return this.userService.searchUser(keyword);
+  searchClient(
+    @Query('keyword') keyword: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    limit = limit > 50 ? 50 : limit;
+    return this.userService.searchUser(keyword, { page, limit });
   }
 
   @Get(':id')

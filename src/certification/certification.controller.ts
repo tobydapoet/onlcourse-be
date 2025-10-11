@@ -7,6 +7,7 @@ import {
   Param,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { CertificationService } from './certification.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -15,6 +16,8 @@ import { Roles } from 'src/auth/decorator/role.decorator';
 import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiParam } from '@nestjs/swagger';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { Certification } from './entities/certification.entity';
 
 @ApiBearerAuth()
 @Controller('certification')
@@ -43,20 +46,23 @@ export class CertificationController {
     try {
       const res = await this.certificationService.create(file_url, file);
       return {
-        success: false,
-        data: res,
+        message: 'Create certification success!',
+        id: res.id,
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }
 
   @Get()
-  findAll() {
-    return this.certificationService.findAll();
+  findAll(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ): Promise<Pagination<Certification>> {
+    limit = limit > 50 ? 50 : limit;
+    return this.certificationService.findAll({ page, limit });
   }
 
   @ApiParam({ name: 'id', type: String })
@@ -89,13 +95,11 @@ export class CertificationController {
     try {
       const res = await this.certificationService.update(id, course_id, file);
       return {
-        success: false,
-        data: res,
+        message: 'Update certification success!',
       };
     } catch (err) {
       return {
-        success: false,
-        error: err.message,
+        message: err.message,
       };
     }
   }

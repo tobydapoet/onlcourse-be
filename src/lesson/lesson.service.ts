@@ -8,6 +8,11 @@ import { RedisClientType } from 'redis';
 import { UploadService } from 'src/upload/upload.service';
 import { QuizService } from 'src/quiz/quiz.service';
 import { Quiz } from 'src/quiz/entities/quiz.entity';
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class LessonService {
@@ -17,6 +22,14 @@ export class LessonService {
     private uploadService: UploadService,
     private quizService: QuizService,
   ) {}
+
+  private async clearLessonCache() {
+    const keys = await this.cacheStorage.keys('lesson:page:*');
+    if (keys.length > 0) {
+      await this.cacheStorage.del(keys);
+    }
+  }
+
   async create(createLessonDto: CreateLessonDto, file: Express.Multer.File) {
     const courseLessons = await this.findByCourse(createLessonDto.course_id);
     const quizzes = await this.quizService.findByCourse(
@@ -49,26 +62,27 @@ export class LessonService {
         where: { course: { id: savedLesson.course.id } },
       });
       await this.cacheStorage.del(`lesson-course:${course?.id}`);
-      await this.cacheStorage.del(`lesson:all`);
+      await this.clearLessonCache();
     }
     return savedLesson;
   }
 
-  async findAll() {
-    const cachedKey = 'lesson:all';
+  async findAll(options: IPaginationOptions): Promise<Pagination<Lesson>> {
+    const cachedKey = `lesson:page:${options.page}:limit:${options.limit}`;
     const cached = await this.cacheStorage.get(cachedKey);
     if (cached) {
       return JSON.parse(cached);
     }
-    const allLession = await this.lessonRepo.find();
-    await this.cacheStorage.set(cachedKey, JSON.stringify(allLession), {
+    const queryBuilder = this.lessonRepo.createQueryBuilder('lesson');
+    const result = await paginate<Lesson>(queryBuilder, options);
+    await this.cacheStorage.set(cachedKey, JSON.stringify(result), {
       EX: 60 * 5,
     });
-    return allLession;
+    return result;
   }
 
   async findOne(id: string) {
-    const cachedKey = 'lesson:all';
+    const cachedKey = `lesson:${id}`;
     const cached = await this.cacheStorage.get(cachedKey);
     if (cached) {
       return JSON.parse(cached);
@@ -141,7 +155,7 @@ export class LessonService {
       },
     );
     if (updatedLesson) {
-      await this.cacheStorage.del(`lesson:all`);
+      await this.clearLessonCache();
       await this.cacheStorage.del(`lesson:${id}`);
       await this.cacheStorage.del(`lesson-course:${course_id}`);
     }
@@ -178,7 +192,7 @@ export class LessonService {
     }
     const deletedLesson = await this.lessonRepo.delete({ id });
     if (deletedLesson) {
-      await this.cacheStorage.del(`lesson:all`);
+      await this.clearLessonCache();
       await this.cacheStorage.del(`lesson-course:${existingLesson.course.id}`);
     }
     return deletedLesson;
