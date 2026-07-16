@@ -36,7 +36,7 @@ export class SalaryConfigController {
         data: res.id,
         message: 'Create salary config success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -77,7 +77,7 @@ export class SalaryConfigController {
       return {
         message: 'Update salary config success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -92,7 +92,7 @@ export class SalaryConfigController {
       return {
         message: 'Delete salary config success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };

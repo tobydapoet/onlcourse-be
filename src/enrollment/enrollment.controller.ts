@@ -35,7 +35,7 @@ export class EnrollmentController {
         message: 'Create enrollment success!',
         id: res?.id,
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -68,7 +68,7 @@ export class EnrollmentController {
       return {
         message: 'Update enrollment success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -85,7 +85,7 @@ export class EnrollmentController {
       return {
         message: 'Delete enrollment success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };

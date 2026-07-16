@@ -51,7 +51,7 @@ export class CertificationController {
         message: 'Create certification success!',
         id: res.id,
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -104,7 +104,7 @@ export class CertificationController {
       return {
         message: 'Update certification success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };

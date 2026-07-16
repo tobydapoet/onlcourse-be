@@ -34,7 +34,7 @@ export class TeacherController {
       return {
         message: 'Update teacher success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };

@@ -27,7 +27,7 @@ export class QuizQuestionController {
       return {
         data: QuizQuestionMapper.toResponse(res),
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -56,7 +56,7 @@ export class QuizQuestionController {
       return {
         data: res ? QuizQuestionMapper.toResponse(res) : null,
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -70,7 +70,7 @@ export class QuizQuestionController {
       return {
         success: true,
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };

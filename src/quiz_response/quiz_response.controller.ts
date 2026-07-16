@@ -25,7 +25,7 @@ export class QuizResponseController {
       return {
         data: res.id,
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -71,7 +71,7 @@ export class QuizResponseController {
             ? res
             : QuizResponseMapper.toResponse(res),
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -86,7 +86,7 @@ export class QuizResponseController {
       return {
         message: 'Delete response success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };

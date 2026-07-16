@@ -35,7 +35,7 @@ export class CertificationAchieveController {
         message: 'Create certification success!',
         id: res?.id,
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -71,7 +71,7 @@ export class CertificationAchieveController {
       return {
         message: 'Delete certification success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };

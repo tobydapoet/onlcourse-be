@@ -24,7 +24,7 @@ export class QuizOptionController {
       return {
         data: QuizOptionMapper.toResponse(res),
       };
-    } catch (err) {
+    } catch (err: any) {
       return { message: err.message };
     }
   }
@@ -54,7 +54,7 @@ export class QuizOptionController {
       return {
         data: res,
       };
-    } catch (err) {
+    } catch (err: any) {
       return { message: err.message };
     }
   }
@@ -67,7 +67,7 @@ export class QuizOptionController {
       return {
         message: 'Delete option success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return { message: err.message };
     }
   }

@@ -67,7 +67,7 @@ export class MessageController {
       return {
         res: MessageMapper.toResponse(res),
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -85,7 +85,7 @@ export class MessageController {
       return {
         res: res ? MessageMapper.toResponse(res) : null,
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };

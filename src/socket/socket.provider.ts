@@ -17,7 +17,7 @@ export class SocketGateWay implements OnGatewayConnection {
   ) {}
 
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   handleConnection(client: Socket) {
     let token =
@@ -52,7 +52,7 @@ export class SocketGateWay implements OnGatewayConnection {
       const saved = await this.messageService.create(message);
       this.server.to(message.sender).emit(`sender_message`, saved);
       this.server.to(message.receiver).emit(`receiver_message`, saved);
-    } catch (err) {
+    } catch (err: any) {
       client.emit('error_message: ', { error: err.message });
     }
   }

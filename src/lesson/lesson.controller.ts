@@ -47,7 +47,7 @@ export class LessonController {
         message: 'Create lesson success!',
         id: res.id,
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -89,7 +89,7 @@ export class LessonController {
       return {
         message: 'Update lesson success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -104,7 +104,7 @@ export class LessonController {
       return {
         message: 'Delete lesson success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };

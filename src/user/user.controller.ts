@@ -37,7 +37,7 @@ export class UserController {
         id: res.id,
         message: 'Register success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         error: err.message,
       };
@@ -54,7 +54,7 @@ export class UserController {
         id: res.id,
         message: 'Create teacher success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -74,7 +74,7 @@ export class UserController {
       return {
         message: 'Create teacher success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };

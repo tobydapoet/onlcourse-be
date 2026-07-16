@@ -44,7 +44,7 @@ export class CourseController {
         id: res?.id,
         message: 'Create course success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -95,7 +95,7 @@ export class CourseController {
       return {
         message: 'Update course success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -111,7 +111,7 @@ export class CourseController {
       return {
         message: 'Delete success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err?.message,
       };

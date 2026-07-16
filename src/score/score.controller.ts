@@ -25,7 +25,7 @@ export class ScoreController {
     try {
       const res = await this.scoreService.create(createScoreDto);
       return { message: 'Thank you for your answer!', id: res.id };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -75,7 +75,7 @@ export class ScoreController {
       return {
         message: 'Delete score success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };

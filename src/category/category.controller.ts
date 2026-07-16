@@ -39,7 +39,7 @@ export class CategoryController {
       return {
         id: res.id,
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         messsage: err.message,
       };
@@ -79,7 +79,7 @@ export class CategoryController {
       return {
         message: 'Update category success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
@@ -95,7 +95,7 @@ export class CategoryController {
       return {
         message: 'Delete category success!',
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         message: err.message,
       };
