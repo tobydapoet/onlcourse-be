@@ -14,27 +14,27 @@ import {
 @Entity('quiz')
 export class Quiz {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'text', nullable: false })
-  title: string;
+  title!: string;
 
   @ManyToOne(() => Course, (course) => course.quizzes, { eager: true })
   @JoinColumn({ name: 'lesson_id' })
-  course: Course;
+  course!: Course;
 
   @Column({ type: 'int' })
-  order: number;
+  order!: number;
 
   @Column({ type: 'time', nullable: true })
-  duration: string;
+  duration!: string;
 
   @OneToMany(() => QuizQuestion, (question) => question.quiz)
-  questions: QuizQuestion[];
+  questions!: QuizQuestion[];
 
   @OneToMany(() => Score, (score) => score.quiz)
-  scores: Score[];
+  scores!: Score[];
 
   @OneToMany(() => QuizResponse, (response) => response.quiz)
-  quiz_responses: QuizResponse[];
+  quiz_responses!: QuizResponse[];
 }

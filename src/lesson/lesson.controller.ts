@@ -20,7 +20,9 @@ import { TeacherRole } from 'src/auth/enums/teacher-role';
 import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { Lesson } from './entities/lesson.entity';
+import { LessonResponseDto } from './dto/lesson-response.dto';
+import { LessonMapper } from './mappers/lesson.mapper';
+import { mapPagination } from 'src/common/dto/pagination-response.dto';
 
 @ApiBearerAuth()
 @Controller('lesson')
@@ -53,24 +55,27 @@ export class LessonController {
   }
 
   @Get()
-  findAll(
+  async findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-  ): Promise<Pagination<Lesson>> {
+  ): Promise<Pagination<LessonResponseDto>> {
     limit = limit > 50 ? 50 : limit;
-    return this.lessonService.findAll({ page, limit });
+    const lessons = await this.lessonService.findAll({ page, limit });
+    return mapPagination(lessons, LessonMapper.toResponse);
   }
 
   @Get(':id')
   @ApiParam({ name: 'id', type: String })
-  findOne(@Param('id') id: string) {
-    return this.lessonService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const lesson = await this.lessonService.findOne(id);
+    return lesson ? LessonMapper.toResponse(lesson) : null;
   }
 
   @Get('course/:id')
   @ApiParam({ name: 'id', type: String })
-  findByCourse(@Param('id') id: string) {
-    return this.lessonService.findByCourse(id);
+  async findByCourse(@Param('id') id: string) {
+    const lessons = await this.lessonService.findByCourse(id);
+    return lessons.map(LessonMapper.toResponse);
   }
 
   @ApiParam({ name: 'id', type: String })

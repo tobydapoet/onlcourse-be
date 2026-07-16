@@ -10,14 +10,14 @@ import {
 @Entity('session')
 export class Auth {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => User, (user) => user.sessions, { eager: true })
-  user: User;
+  user!: User;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  hashedToken: string;
+  hashedToken!: string;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 }

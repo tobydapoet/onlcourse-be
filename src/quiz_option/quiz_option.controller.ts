@@ -11,6 +11,7 @@ import { QuizOptionService } from './quiz_option.service';
 import { CreateQuizOptionDto } from './dto/create-quiz_option.dto';
 import { UpdateQuizOptionDto } from './dto/update-quiz_option.dto';
 import { ApiParam } from '@nestjs/swagger';
+import { QuizOptionMapper } from './mappers/quiz-option.mapper';
 
 @Controller('quiz-option')
 export class QuizOptionController {
@@ -21,7 +22,7 @@ export class QuizOptionController {
     try {
       const res = await this.quizOptionService.create(createQuizOptionDto);
       return {
-        data: res,
+        data: QuizOptionMapper.toResponse(res),
       };
     } catch (err) {
       return { message: err.message };
@@ -30,14 +31,16 @@ export class QuizOptionController {
 
   @ApiParam({ name: 'id', type: String })
   @Get('option/:id')
-  findByQuizQuestion(@Param('id') id: string) {
-    return this.quizOptionService.findByQuizQuestion(id);
+  async findByQuizQuestion(@Param('id') id: string) {
+    const options = await this.quizOptionService.findByQuizQuestion(id);
+    return options.map(QuizOptionMapper.toResponse);
   }
 
   @ApiParam({ name: 'id', type: String })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.quizOptionService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const option = await this.quizOptionService.findOne(id);
+    return option ? QuizOptionMapper.toResponse(option) : null;
   }
 
   @ApiParam({ name: 'id', type: String })

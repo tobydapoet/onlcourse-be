@@ -19,8 +19,10 @@ import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { IPaginationOptions, Pagination } from 'nestjs-typeorm-paginate';
-import { User } from './entities/user.entity';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { UserResponseDto } from './dto/user-response.dto';
+import { UserMapper } from './mappers/user.mapper';
+import { mapPagination } from 'src/common/dto/pagination-response.dto';
 
 @Controller('user')
 export class UserController {
@@ -84,24 +86,27 @@ export class UserController {
   async findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-  ): Promise<Pagination<any>> {
+  ): Promise<Pagination<UserResponseDto>> {
     limit = Math.min(limit, 50);
-    return this.userService.findAll({ page, limit });
+    const users = await this.userService.findAll({ page, limit });
+    return mapPagination(users, UserMapper.toResponse);
   }
 
   @Roles(Role.TEACHER)
   @Get('search')
-  searchClient(
+  async searchClient(
     @Query('keyword') keyword: string,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
   ) {
     limit = limit > 50 ? 50 : limit;
-    return this.userService.searchUser(keyword, { page, limit });
+    const users = await this.userService.searchUser(keyword, { page, limit });
+    return mapPagination(users, UserMapper.toResponse);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
+  async findOne(@Param('id') id: string): Promise<UserResponseDto | null> {
+    const user = await this.userService.findOne(id);
+    return user ? UserMapper.toResponse(user) : null;
   }
 }

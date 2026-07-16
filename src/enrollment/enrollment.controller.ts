@@ -16,7 +16,9 @@ import { Role } from 'src/auth/enums/role.enum';
 import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { Enrollment } from './entities/enrollment.entity';
+import { EnrollmentResponseDto } from './dto/enrollment-response.dto';
+import { EnrollmentMapper } from './mappers/enrollment.mapper';
+import { mapPagination } from 'src/common/dto/pagination-response.dto';
 
 @ApiBearerAuth()
 @Controller('enrollment')
@@ -41,17 +43,19 @@ export class EnrollmentController {
   }
 
   @Get()
-  findAll(
+  async findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-  ): Promise<Pagination<Enrollment>> {
-    return this.enrollmentService.findAll({ page, limit });
+  ): Promise<Pagination<EnrollmentResponseDto>> {
+    const enrollments = await this.enrollmentService.findAll({ page, limit });
+    return mapPagination(enrollments, EnrollmentMapper.toResponse);
   }
 
   @ApiParam({ name: 'id', type: String })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.enrollmentService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const enrollment = await this.enrollmentService.findOne(id);
+    return enrollment ? EnrollmentMapper.toResponse(enrollment) : null;
   }
 
   @ApiParam({ name: 'id', type: String })

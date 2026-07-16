@@ -15,38 +15,38 @@ import {
 @Entity('course')
 export class Course {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'text', nullable: false })
-  title: string;
+  title!: string;
 
   @Column({ type: 'text', nullable: false })
-  des: string;
+  des!: string;
 
   @Column({ type: 'text', nullable: false })
-  thumbnail_url: string;
+  thumbnail_url!: string;
 
   @Column({ type: 'int', default: 0 })
-  cost: number;
+  cost!: number;
 
   @Column({ type: 'boolean', default: false })
-  isDeleted: boolean;
+  isDeleted!: boolean;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 
   @OneToMany(() => CourseCategory, (courseCategory) => courseCategory.course)
-  course_categories: CourseCategory[];
+  course_categories!: CourseCategory[];
 
   @OneToMany(() => Lesson, (lesson) => lesson.course)
-  lessons: Lesson[];
+  lessons!: Lesson[];
 
   @OneToMany(() => Quiz, (quiz) => quiz.course)
-  quizzes: Quiz[];
+  quizzes!: Quiz[];
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.course)
-  enrollments: Enrollment[];
+  enrollments!: Enrollment[];
 
   @OneToOne(() => Certification, (certification) => certification.course)
-  certification: Certification;
+  certification!: Certification;
 }

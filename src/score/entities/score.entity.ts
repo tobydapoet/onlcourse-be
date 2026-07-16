@@ -5,17 +5,17 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('score')
 export class Score {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => Student, (student) => student.scores)
-  student: Student;
+  student!: Student;
 
   @ManyToOne(() => Quiz, (quiz) => quiz.scores)
-  quiz: Quiz;
+  quiz!: Quiz;
 
   @Column({ type: 'decimal', nullable: false })
-  total: number;
+  total!: number;
 
   @Column({ type: 'int', nullable: false })
-  correct: number;
+  correct!: number;
 }

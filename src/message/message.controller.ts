@@ -20,6 +20,7 @@ import {
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
+import { MessageMapper } from './mappers/message.mapper';
 
 @ApiBearerAuth()
 @Controller('message')
@@ -39,13 +40,18 @@ export class MessageController {
     @Query('user1') user1: string,
     @Query('user2') user2: string,
   ) {
-    return this.messageService.getChatBetweenTwoUsers(user1, user2);
+    const messages = await this.messageService.getChatBetweenTwoUsers(
+      user1,
+      user2,
+    );
+    return messages.map(MessageMapper.toResponse);
   }
 
   @Get('user/:id')
   @ApiParam({ name: 'id', type: String })
   async getAllConversations(@Param('id') id: string) {
-    return this.messageService.getAllConversations(id);
+    const messages = await this.messageService.getAllConversations(id);
+    return messages.map(MessageMapper.toResponse);
   }
 
   @Public()
@@ -59,7 +65,7 @@ export class MessageController {
     try {
       const res = await this.messageService.create(createChatDto, files);
       return {
-        res: res,
+        res: MessageMapper.toResponse(res),
       };
     } catch (err) {
       return {
@@ -77,7 +83,7 @@ export class MessageController {
     try {
       const res = await this.messageService.update(id, updateChatDto);
       return {
-        res: res,
+        res: res ? MessageMapper.toResponse(res) : null,
       };
     } catch (err) {
       return {

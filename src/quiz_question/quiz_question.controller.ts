@@ -12,6 +12,7 @@ import { CreateQuizQuestionDto } from './dto/create-quiz_question.dto';
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { Roles } from 'src/auth/decorator/role.decorator';
 import { Role } from 'src/auth/enums/role.enum';
+import { QuizQuestionMapper } from './mappers/quiz-question.mapper';
 
 @ApiBearerAuth()
 @Controller('quiz-question')
@@ -24,7 +25,7 @@ export class QuizQuestionController {
     try {
       const res = await this.quizQuestionService.create(createQuizQuestionDto);
       return {
-        data: res,
+        data: QuizQuestionMapper.toResponse(res),
       };
     } catch (err) {
       return {
@@ -35,14 +36,16 @@ export class QuizQuestionController {
 
   @Get('quiz/:id')
   @ApiParam({ name: 'id', type: String })
-  findByQuiz(id: string) {
-    return this.quizQuestionService.findByQuiz(id);
+  async findByQuiz(@Param('id') id: string) {
+    const questions = await this.quizQuestionService.findByQuiz(id);
+    return questions.map(QuizQuestionMapper.toResponse);
   }
 
   @Get(':id')
   @ApiParam({ name: 'id', type: String })
-  findOne(@Param('id') id: string) {
-    return this.quizQuestionService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const question = await this.quizQuestionService.findOne(id);
+    return question ? QuizQuestionMapper.toResponse(question) : null;
   }
 
   @Patch(':id')
@@ -51,7 +54,7 @@ export class QuizQuestionController {
     try {
       const res = await this.quizQuestionService.update(id, question_text);
       return {
-        data: res,
+        data: res ? QuizQuestionMapper.toResponse(res) : null,
       };
     } catch (err) {
       return {

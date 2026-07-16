@@ -12,15 +12,15 @@ import {
 @Entity('certification')
 export class Certification {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @OneToOne(() => Course, (course) => course.certification, { eager: true })
   @JoinColumn({ name: 'course_id' })
-  course: Course;
+  course!: Course;
 
   @Column({ type: 'text', nullable: false })
-  file_url: string;
+  file_url!: string;
 
   @OneToMany(() => CertificationAchieve, (achieve) => achieve.certification)
-  certification_achieves: CertificationAchieve[];
+  certification_achieves!: CertificationAchieve[];
 }

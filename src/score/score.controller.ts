@@ -10,8 +10,10 @@ import {
 import { ScoreService } from './score.service';
 import { CreateScoreDto } from './dto/create-score.dto';
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
-import { Score } from './entities/score.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { ScoreResponseDto } from './dto/score-response.dto';
+import { ScoreMapper } from './mappers/score.mapper';
+import { mapPagination } from 'src/common/dto/pagination-response.dto';
 
 @ApiBearerAuth()
 @Controller('score')
@@ -31,34 +33,38 @@ export class ScoreController {
   }
 
   @Get()
-  findAll(
+  async findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-  ): Promise<Pagination<Score>> {
+  ): Promise<Pagination<ScoreResponseDto>> {
     limit = limit > 50 ? 50 : limit;
-    return this.scoreService.findAll({
+    const scores = await this.scoreService.findAll({
       page,
       limit,
       route: '/score',
     });
+    return mapPagination(scores, ScoreMapper.toResponse);
   }
 
   @ApiParam({ name: 'id', type: String })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.scoreService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const score = await this.scoreService.findOne(id);
+    return score instanceof Error ? score : ScoreMapper.toResponse(score);
   }
 
   @ApiParam({ name: 'id', type: String })
   @Get('quiz/:id')
-  findByQuiz(@Param('id') id: string) {
-    return this.scoreService.findByQuiz(id);
+  async findByQuiz(@Param('id') id: string) {
+    const scores = await this.scoreService.findByQuiz(id);
+    return scores.map(ScoreMapper.toResponse);
   }
 
   @ApiParam({ name: 'id', type: String })
   @Get('student/:id')
-  findByStudent(@Param('id') id: string) {
-    return this.scoreService.findByStudent(id);
+  async findByStudent(@Param('id') id: string) {
+    const scores = await this.scoreService.findByStudent(id);
+    return scores.map(ScoreMapper.toResponse);
   }
 
   @ApiParam({ name: 'id', type: String })

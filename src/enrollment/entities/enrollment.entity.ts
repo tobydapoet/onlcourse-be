@@ -12,22 +12,22 @@ import {
 @Entity('enrollment')
 export class Enrollment {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => Student, (student) => student.enrollments, { eager: true })
   @JoinColumn({ name: 'student_id' })
-  student: Student;
+  student!: Student;
 
   @ManyToOne(() => Course, (crourse) => crourse.enrollments, { eager: true })
   @JoinColumn({ name: 'course_id' })
-  course: Course;
+  course!: Course;
 
   @Column({ type: 'int', nullable: true })
-  last_order: number;
+  last_order!: number;
 
   @Column({ type: 'boolean', default: false })
-  isCompleted: boolean;
+  isCompleted!: boolean;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 }

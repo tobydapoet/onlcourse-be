@@ -12,21 +12,21 @@ import { Student } from 'src/student/entities/student.entity';
 @Entity('notifcation')
 export class Notification {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => Student, (student) => student.notifications, { eager: true })
   @JoinColumn({ name: 'student_id' })
-  student: Student;
+  student!: Student;
 
   @Column({ type: 'enum', enum: NotifyType, nullable: false })
-  type: NotifyType;
+  type!: NotifyType;
 
   @Column({ type: 'text', nullable: false })
-  typeId: string;
+  typeId!: string;
 
   @Column({ type: 'text', nullable: false })
-  content: string;
+  content!: string;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 }

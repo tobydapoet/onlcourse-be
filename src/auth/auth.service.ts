@@ -130,7 +130,7 @@ export class AuthService {
   }
 
   async findOne(id: string) {
-    const cachedKey = `user:${id}`;
+    const cachedKey = `auth:${id}`;
     const cached = await this.redistStorage.get(cachedKey);
     if (cached) {
       return JSON.parse(cached);

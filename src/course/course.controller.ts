@@ -19,7 +19,12 @@ import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { Course } from './entities/course.entity';
+import { CourseResponseDto } from './dto/course-response.dto';
+import { CourseMapper } from './mappers/course.mapper';
+import { mapPagination } from 'src/common/dto/pagination-response.dto';
+import { LessonMapper } from 'src/lesson/mappers/lesson.mapper';
+import { QuizMapper } from 'src/quiz/mappers/quiz.mapper';
+import { Lesson } from 'src/lesson/entities/lesson.entity';
 
 @Controller('course')
 export class CourseController {
@@ -36,7 +41,7 @@ export class CourseController {
     try {
       const res = await this.courseService.create(createCourseDto, file);
       return {
-        id: res.id,
+        id: res?.id,
         message: 'Create course success!',
       };
     } catch (err) {
@@ -48,24 +53,31 @@ export class CourseController {
 
   @ApiBearerAuth()
   @Get()
-  findAll(
+  async findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-  ): Promise<Pagination<Course>> {
+  ): Promise<Pagination<CourseResponseDto>> {
     limit = limit > 50 ? 50 : limit;
-    return this.courseService.findAll({ page, limit });
+    const courses = await this.courseService.findAll({ page, limit });
+    return mapPagination(courses, CourseMapper.toResponse);
   }
 
   @ApiBearerAuth()
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.courseService.findOne(id);
+  async findOne(@Param('id') id: string): Promise<CourseResponseDto | null> {
+    const course = await this.courseService.findOne(id);
+    return course ? CourseMapper.toResponse(course) : null;
   }
 
   @ApiBearerAuth()
   @Get('detail/:id')
-  arrange(@Param('id') id: string) {
-    return this.courseService.arrangeAllInCourse(id);
+  async arrange(@Param('id') id: string) {
+    const contents = await this.courseService.arrangeAllInCourse(id);
+    return contents.map((content) =>
+      'video' in content
+        ? LessonMapper.toResponse(content as Lesson)
+        : QuizMapper.toResponse(content),
+    );
   }
 
   @Put(':id')
@@ -79,7 +91,7 @@ export class CourseController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     try {
-      const res = await this.courseService.update(id, updateCourseDto, file);
+      await this.courseService.update(id, updateCourseDto, file);
       return {
         message: 'Update course success!',
       };

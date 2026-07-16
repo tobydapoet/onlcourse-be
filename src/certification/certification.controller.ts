@@ -17,7 +17,9 @@ import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiParam } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { Certification } from './entities/certification.entity';
+import { CertificationResponseDto } from './dto/certification-response.dto';
+import { CertificationMapper } from './mappers/certification.mapper';
+import { mapPagination } from 'src/common/dto/pagination-response.dto';
 
 @ApiBearerAuth()
 @Controller('certification')
@@ -57,18 +59,23 @@ export class CertificationController {
   }
 
   @Get()
-  findAll(
+  async findAll(
     @Query('page') page: number,
     @Query('limit') limit: number,
-  ): Promise<Pagination<Certification>> {
+  ): Promise<Pagination<CertificationResponseDto>> {
     limit = limit > 50 ? 50 : limit;
-    return this.certificationService.findAll({ page, limit });
+    const certifications = await this.certificationService.findAll({
+      page,
+      limit,
+    });
+    return mapPagination(certifications, CertificationMapper.toResponse);
   }
 
   @ApiParam({ name: 'id', type: String })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.certificationService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const certification = await this.certificationService.findOne(id);
+    return certification ? CertificationMapper.toResponse(certification) : null;
   }
 
   @ApiParam({ name: 'id', type: String })

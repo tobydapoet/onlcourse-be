@@ -17,7 +17,9 @@ import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { SalaryConfig } from './entities/salary-config.entity';
+import { SalaryConfigResponseDto } from './dto/salary-config-response.dto';
+import { SalaryConfigMapper } from './mappers/salary-config.mapper';
+import { mapPagination } from 'src/common/dto/pagination-response.dto';
 
 @ApiBearerAuth()
 @Controller('salary-config')
@@ -45,18 +47,20 @@ export class SalaryConfigController {
   async findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-  ): Promise<Pagination<SalaryConfig>> {
+  ): Promise<Pagination<SalaryConfigResponseDto>> {
     limit = limit > 50 ? 50 : limit;
-    return this.salaryConfigService.findAll({
+    const configs = await this.salaryConfigService.findAll({
       page,
       limit,
     });
+    return mapPagination(configs, SalaryConfigMapper.toResponse);
   }
 
   @ApiParam({ name: 'id', type: String })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.salaryConfigService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const config = await this.salaryConfigService.findOne(id);
+    return config ? SalaryConfigMapper.toResponse(config) : null;
   }
 
   @ApiParam({ name: 'id', type: String })

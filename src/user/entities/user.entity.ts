@@ -19,37 +19,37 @@ import { Auth } from 'src/auth/entities/auth.entity';
 @Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'varchar', length: 255, unique: true })
-  email: string;
+  email!: string;
 
   @Column({ type: 'varchar', length: 255, unique: true, nullable: true })
-  phone: string;
+  phone!: string;
 
   @Column({ type: 'text', nullable: false })
-  name: string;
+  name!: string;
 
   @Column({ type: 'text', nullable: true })
-  password: string;
+  password!: string;
 
   @Column({ type: 'text', nullable: true })
-  provider: string;
+  provider!: string;
 
   @Column({ type: 'enum', enum: ProvideType, nullable: true })
-  provider_type: ProvideType;
+  provider_type!: ProvideType;
 
   @Column({ type: 'text', nullable: true })
-  avatar_url: string;
+  avatar_url!: string;
 
   @Column({ type: 'enum', enum: Role, default: Role.STUDENT })
-  role: Role;
+  role!: Role;
 
   @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIVE })
-  status: UserStatus;
+  status!: UserStatus;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 
   @BeforeInsert()
   async hashPassword() {
@@ -58,17 +58,17 @@ export class User {
     }
   }
   @OneToMany(() => Auth, (auth) => auth.user)
-  sessions: Auth[];
+  sessions!: Auth[];
 
   @OneToOne(() => Student, (student) => student.user, { eager: true })
-  student: Student;
+  student!: Student;
 
   @OneToOne(() => Teacher, (teacher) => teacher.user, { eager: true })
-  teacher: Teacher;
+  teacher!: Teacher;
 
   @OneToMany(() => Message, (message) => message.sender)
-  sentMessages: Message[];
+  sentMessages!: Message[];
 
   @OneToMany(() => Message, (message) => message.receiver)
-  receivedMessages: Message[];
+  receivedMessages!: Message[];
 }

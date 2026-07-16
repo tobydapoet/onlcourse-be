@@ -13,11 +13,6 @@ export class CreateCourseDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsString()
-  thumbnail_url: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
   @IsNumber()
   cost: number;
 }

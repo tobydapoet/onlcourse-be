@@ -2,7 +2,7 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Like, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { StudentService } from 'src/student/student.service';
 import { CreateTeacherUserDto } from './dto/create-teacher-user.dto';
 import { TeacherService } from 'src/teacher/teacher.service';

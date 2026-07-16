@@ -11,28 +11,28 @@ import {
 @Entity('message')
 export class Message {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => User, (user) => user.sentMessages, { eager: true })
   @JoinColumn({ name: 'sender_id' })
-  sender: User;
+  sender!: User;
 
   @ManyToOne(() => User, (user) => user.receivedMessages, { eager: true })
   @JoinColumn({ name: 'receiver_id' })
-  receiver: User;
+  receiver!: User;
 
   @Column({ type: 'text' })
-  content: string;
+  content!: string;
 
   @Column('json', { nullable: true })
-  images: string[];
+  images!: string[];
 
   @Column({ type: 'boolean', default: false })
-  isReading: boolean;
+  isReading!: boolean;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 
   @Column({ type: 'boolean', default: false })
-  isDeleted: boolean;
+  isDeleted!: boolean;
 }

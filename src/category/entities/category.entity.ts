@@ -4,11 +4,11 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('category')
 export class Category {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'text', nullable: false })
-  name: string;
+  name!: string;
 
   @OneToMany(() => CourseCategory, (courseCategory) => courseCategory.category)
-  course_categories: CourseCategory[];
+  course_categories!: CourseCategory[];
 }

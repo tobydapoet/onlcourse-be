@@ -16,30 +16,30 @@ import {
 @Entity('student')
 export class Student {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @OneToOne(() => User, (user) => user.student)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column({ type: 'date', nullable: true })
-  dob: Date;
+  dob!: Date;
 
   @Column({ type: 'enum', enum: ['Nam', 'Nữ'], nullable: true })
-  gender: ['Name', 'Nữ'];
+  gender!: ['Name', 'Nữ'];
 
   @OneToMany(() => Score, (score) => score.student)
-  scores: Score[];
+  scores!: Score[];
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.student)
-  enrollments: Enrollment[];
+  enrollments!: Enrollment[];
 
   @OneToMany(() => CertificationAchieve, (achieve) => achieve.student)
-  certification_achieves: CertificationAchieve[];
+  certification_achieves!: CertificationAchieve[];
 
   @OneToMany(() => QuizResponse, (response) => response.student)
-  quiz_responses: QuizResponse[];
+  quiz_responses!: QuizResponse[];
 
   @OneToMany(() => Notification, (notification) => notification.student)
-  notifications: Notification[];
+  notifications!: Notification[];
 }

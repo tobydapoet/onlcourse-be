@@ -14,33 +14,33 @@ import { Lesson } from 'src/lesson/entities/lesson.entity';
 @Entity('teacher')
 export class Teacher {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'text', nullable: true })
-  bio: string;
+  bio!: string;
 
   @OneToOne(() => User, (user) => user.teacher)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column({ type: 'enum', enum: TeacherRole })
-  role_type: TeacherRole;
+  role_type!: TeacherRole;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  hr_date: Date;
+  hr_date!: Date;
 
   @Column({ type: 'text' })
-  degree: string;
+  degree!: string;
 
   @Column({ type: 'int', default: 0 })
-  salary: number;
+  salary!: number;
 
   @OneToMany(() => SalaryConfig, (salary) => salary.teacher)
-  salaries: SalaryConfig[];
+  salaries!: SalaryConfig[];
 
   @OneToMany(() => Lesson, (lesson) => lesson.main)
-  mainLessons: Lesson[];
+  mainLessons!: Lesson[];
 
   @OneToMany(() => Lesson, (lesson) => lesson.assistant)
-  assistantLessons: Lesson[];
+  assistantLessons!: Lesson[];
 }

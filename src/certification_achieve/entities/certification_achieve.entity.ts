@@ -11,19 +11,19 @@ import {
 @Entity('cerification_achieve')
 export class CertificationAchieve {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => Student, (student) => student.certification_achieves)
   @JoinColumn({ name: 'student_id' })
-  student: Student;
+  student!: Student;
 
   @ManyToOne(
     () => Certification,
     (certification) => certification.certification_achieves,
   )
   @JoinColumn({ name: 'certification_id' })
-  certification: Certification;
+  certification!: Certification;
 
   @CreateDateColumn()
-  creted_at: Date;
+  creted_at!: Date;
 }

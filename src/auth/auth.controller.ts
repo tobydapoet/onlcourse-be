@@ -14,11 +14,9 @@ import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guard/local/local.guard';
 import { RefreshAuthGuard } from './guard/refresh-auth/refresh-auth.guard';
 import { Public } from './decorator/public.decorator';
-import { Role } from './enums/role.enum';
-import { Roles } from './decorator/role.decorator';
-import { TeacherPosition } from './decorator/teacher-type.decorator';
-import { TeacherRole } from './enums/teacher-role';
 import { GoogleGuard } from './guard/google/google.guard';
+import { AuthResponseDto } from './dto/auth-response.dto';
+import { AuthMapper } from './mappers/auth.mapper';
 
 @Controller('auth')
 export class AuthController {
@@ -58,8 +56,9 @@ export class AuthController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(id);
+  async findOne(@Param('id') id: string): Promise<AuthResponseDto | null> {
+    const session = await this.authService.findOne(id);
+    return session ? AuthMapper.toResponse(session) : null;
   }
 
   @Public()

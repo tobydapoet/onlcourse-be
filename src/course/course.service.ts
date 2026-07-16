@@ -38,24 +38,32 @@ export class CourseService {
         'course',
         'image',
       );
-      createCourseDto.thumbnail_url = uploadResult.url;
+      const newCourse = this.courseRepo.create({
+        ...createCourseDto,
+        thumbnail_url: uploadResult.url,
+      });
+      const saved = await this.courseRepo.save(newCourse);
+      if (saved) {
+        await this.clearCourseCache();
+      }
+      return saved;
     }
-    const newCourse = this.courseRepo.create(createCourseDto);
-    const saved = await this.courseRepo.save(newCourse);
-    if (saved) {
-      await this.clearCourseCache();
-    }
-    return saved;
   }
 
   async findAll(options: IPaginationOptions): Promise<Pagination<Course>> {
     const cachedKey = `course:page:${options.page}:limit:${options.limit}`;
     const cached = await this.cacheStorage.get(cachedKey);
     if (cached) {
-      return JSON.parse(cached);
+      const parsed = JSON.parse(cached);
+      if (parsed?.items && parsed?.meta) {
+        return parsed;
+      }
     }
+
     const queryBuilder = this.courseRepo.createQueryBuilder('course');
-    const result = await paginate(queryBuilder, options);
+    queryBuilder.orderBy('course.created_at', 'DESC');
+
+    const result = await paginate<Course>(queryBuilder, options);
     await this.cacheStorage.set(cachedKey, JSON.stringify(result), {
       EX: 60 * 5,
     });
@@ -113,6 +121,7 @@ export class CourseService {
     if (!existingCourse) {
       throw new UnauthorizedException("Can't find this course!");
     }
+    let updateData: any = { ...updateCourseDto };
     if (file) {
       if (existingCourse.thumbnail_url) {
         return await this.uploadService.deleteImage(
@@ -124,9 +133,12 @@ export class CourseService {
         'course',
         'image',
       );
-      updateCourseDto.thumbnail_url = uploadFile.url;
+      updateData = {
+        ...updateCourseDto,
+        thumbnail_url: uploadFile.url,
+      };
     }
-    const updatedCourse = await this.courseRepo.update({ id }, updateCourseDto);
+    const updatedCourse = await this.courseRepo.update({ id }, updateData);
     if (updatedCourse) {
       await this.clearCourseCache();
       await this.cacheStorage.del(`course:${id}`);

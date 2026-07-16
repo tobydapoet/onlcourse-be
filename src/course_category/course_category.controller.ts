@@ -6,6 +6,7 @@ import { Role } from 'src/auth/enums/role.enum';
 import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { CourseCategoryMapper } from './mappers/course-category.mapper';
 
 @Controller('course-category')
 export class CourseCategoryController {
@@ -15,18 +16,23 @@ export class CourseCategoryController {
   @ApiBearerAuth()
   @Roles(Role.TEACHER)
   @TeacherPosition(TeacherRole.FULLTIME)
-  create(@Body() createCourseCategoryDto: CreateCourseCategoryDto) {
-    return this.courseCategoryService.create(createCourseCategoryDto);
+  async create(@Body() createCourseCategoryDto: CreateCourseCategoryDto) {
+    const relation = await this.courseCategoryService.create(
+      createCourseCategoryDto,
+    );
+    return CourseCategoryMapper.toResponse(relation);
   }
 
   @Get('course/:id')
-  findByCourse(@Param('id') id: string) {
-    return this.courseCategoryService.findByCourse(id);
+  async findByCourse(@Param('id') id: string) {
+    const relations = await this.courseCategoryService.findByCourse(id);
+    return relations.map(CourseCategoryMapper.toResponse);
   }
 
   @Get('category/:id')
-  findByCategory(@Param('id') id: number) {
-    return this.courseCategoryService.findByCategory(id);
+  async findByCategory(@Param('id') id: number) {
+    const relations = await this.courseCategoryService.findByCategory(id);
+    return relations.map(CourseCategoryMapper.toResponse);
   }
 
   @ApiBearerAuth()

@@ -15,6 +15,7 @@ import { Role } from 'src/auth/enums/role.enum';
 import { Roles } from 'src/auth/decorator/role.decorator';
 import { TeacherPosition } from 'src/auth/decorator/teacher-type.decorator';
 import { TeacherRole } from 'src/auth/enums/teacher-role';
+import { QuizMapper } from './mappers/quiz.mapper';
 @ApiBearerAuth()
 @Controller('quiz')
 export class QuizController {
@@ -23,21 +24,23 @@ export class QuizController {
   @Roles(Role.TEACHER)
   @TeacherPosition(TeacherRole.ADMIN, TeacherRole.PARTTIME, TeacherRole.ADMIN)
   @Post()
-  create(@Body() createQuizDto: CreateQuizDto) {
-    return this.quizService.create(createQuizDto);
+  async create(@Body() createQuizDto: CreateQuizDto) {
+    const quiz = await this.quizService.create(createQuizDto);
+    return QuizMapper.toResponse(quiz);
   }
 
   @ApiParam({ name: 'id', type: String })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.quizService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const quiz = await this.quizService.findOne(id);
+    return quiz ? QuizMapper.toResponse(quiz) : null;
   }
 
   @ApiParam({ name: 'id', type: String })
   @Roles(Role.TEACHER)
   @TeacherPosition(TeacherRole.ADMIN, TeacherRole.PARTTIME, TeacherRole.ADMIN)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateQuizDto: UpdateQuizDto) {
+  async update(@Param('id') id: string, @Body() updateQuizDto: UpdateQuizDto) {
     return this.quizService.update(id, updateQuizDto);
   }
 

@@ -12,21 +12,21 @@ import {
 @Entity('quiz_option')
 export class QuizOption {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'text' })
-  option_text: string;
+  option_text!: string;
 
   @Column({ type: 'boolean', default: false })
-  is_correct: boolean;
+  is_correct!: boolean;
 
   @ManyToOne(() => QuizQuestion, (question) => question.quiz_options, {
     eager: true,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'question_id' })
-  quiz_question: QuizQuestion;
+  quiz_question!: QuizQuestion;
 
   @OneToMany(() => QuizResponse, (response) => response.quiz_option)
-  quiz_responses: QuizResponse[];
+  quiz_responses!: QuizResponse[];
 }

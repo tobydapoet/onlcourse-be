@@ -1,6 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Observable } from 'rxjs';
 import { ROLE_KEY } from 'src/auth/decorator/role.decorator';
 import { Role } from 'src/auth/enums/role.enum';
 

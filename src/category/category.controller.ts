@@ -13,7 +13,9 @@ import { Roles } from 'src/auth/decorator/role.decorator';
 import { Role } from 'src/auth/enums/role.enum';
 import { ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { Category } from './entities/category.entity';
+import { CategoryResponseDto } from './dto/category-response.dto';
+import { CategoryMapper } from './mappers/category.mapper';
+import { mapPagination } from 'src/common/dto/pagination-response.dto';
 
 @ApiBearerAuth()
 @Controller('category')
@@ -45,17 +47,19 @@ export class CategoryController {
   }
 
   @Get()
-  findAll(
+  async findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-  ): Promise<Pagination<Category>> {
+  ): Promise<Pagination<CategoryResponseDto>> {
     limit = limit > 50 ? 50 : limit;
-    return this.categoryService.findAll({ page, limit });
+    const categories = await this.categoryService.findAll({ page, limit });
+    return mapPagination(categories, CategoryMapper.toResponse);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.categoryService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const category = await this.categoryService.findOne(+id);
+    return category ? CategoryMapper.toResponse(category) : null;
   }
 
   @Roles(Role.TEACHER)

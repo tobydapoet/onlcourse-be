@@ -12,31 +12,31 @@ import {
 @Entity('lesson')
 export class Lesson {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'text', nullable: false })
-  title: string;
+  title!: string;
 
   @ManyToOne(() => Course, (course) => course.lessons, { eager: true })
   @JoinColumn({ name: 'course_id' })
-  course: Course;
+  course!: Course;
 
   @Column({ type: 'int' })
-  order: number;
+  order!: number;
 
   @Column({ type: 'text', nullable: false })
-  video: string;
+  video!: string;
 
   @ManyToOne(() => Teacher, (teacher) => teacher.mainLessons, { eager: true })
   @JoinColumn({ name: 'main_id' })
-  main: Teacher;
+  main!: Teacher;
 
   @ManyToOne(() => Teacher, (teacher) => teacher.assistantLessons, {
     eager: true,
   })
   @JoinColumn({ name: 'assistant_id' })
-  assistant: Teacher;
+  assistant!: Teacher;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 }

@@ -11,6 +11,7 @@ import {
 import { QuizResponseService } from './quiz_response.service';
 import { CreateQuizResponseDto } from './dto/create-quiz_response.dto';
 import { ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { QuizResponseMapper } from './mappers/quiz-response.mapper';
 
 @ApiBearerAuth()
 @Controller('quiz-response')
@@ -33,24 +34,30 @@ export class QuizResponseController {
 
   @Get(':id')
   @ApiParam({ name: 'id', type: String })
-  findOne(@Param('id') id: string) {
-    return this.quizResponseService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const response = await this.quizResponseService.findOne(id);
+    return response ? QuizResponseMapper.toResponse(response) : null;
   }
 
   @Get('quiz/:id')
   @ApiParam({ name: 'id', type: String })
-  findByQuiz(@Param('id') id: string) {
-    return this.quizResponseService.findByQuiz(id);
+  async findByQuiz(@Param('id') id: string) {
+    const responses = await this.quizResponseService.findByQuiz(id);
+    return responses.map(QuizResponseMapper.toResponse);
   }
 
   @Get('find')
   @ApiQuery({ name: 'quiz', type: String })
   @ApiQuery({ name: 'student', type: String })
-  findByQuizAndStudent(
+  async findByQuizAndStudent(
     @Query('quiz') quiz_id: string,
     @Query('student') student_id: string,
   ) {
-    return this.quizResponseService.findByQuizAndStudent(quiz_id, student_id);
+    const responses = await this.quizResponseService.findByQuizAndStudent(
+      quiz_id,
+      student_id,
+    );
+    return responses.map(QuizResponseMapper.toResponse);
   }
 
   @Patch(':id')
@@ -59,7 +66,10 @@ export class QuizResponseController {
     try {
       const res = await this.quizResponseService.update(id, option_id);
       return {
-        data: res,
+        data:
+          res instanceof Error || !res
+            ? res
+            : QuizResponseMapper.toResponse(res),
       };
     } catch (err) {
       return {

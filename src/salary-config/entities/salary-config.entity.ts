@@ -11,30 +11,30 @@ import {
 @Entity('salary')
 export class SalaryConfig {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => Teacher, (teacher) => teacher.salaries, { eager: true })
   @JoinColumn({ name: 'teacher_id' })
-  teacher: Teacher;
+  teacher!: Teacher;
 
   @Column({ type: 'int', nullable: true })
-  base_salary: Number;
+  base_salary!: Number;
 
   @Column({ type: 'int', nullable: true })
-  hourly_rate: Number;
+  hourly_rate!: Number;
 
   @Column({ type: 'int', nullable: true })
-  hours_worked: Number;
+  hours_worked!: Number;
 
   @Column({ type: 'int', nullable: true })
-  penalty: Number;
+  penalty!: Number;
 
   @Column({ type: 'decimal', scale: 2, nullable: true, default: 0 })
-  bonus_rate: Number;
+  bonus_rate!: Number;
 
   @Column({ type: 'decimal', nullable: true })
-  total: Number;
+  total!: Number;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 }

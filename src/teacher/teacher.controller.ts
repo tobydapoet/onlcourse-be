@@ -2,21 +2,25 @@ import { Controller, Get, Post, Body, Param, Put, Query } from '@nestjs/common';
 import { TeacherService } from './teacher.service';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { ApiParam } from '@nestjs/swagger';
+import { TeacherMapper } from './mappers/teacher.mapper';
+import { mapPagination } from 'src/common/dto/pagination-response.dto';
 
 @Controller('teacher')
 export class TeacherController {
   constructor(private readonly teacherService: TeacherService) {}
 
   @Get()
-  findAll(@Query('page') page = 1, @Query('limit') limit = 10) {
+  async findAll(@Query('page') page = 1, @Query('limit') limit = 10) {
     limit = limit > 50 ? 50 : limit;
-    return this.teacherService.findAll({ page, limit });
+    const teachers = await this.teacherService.findAll({ page, limit });
+    return mapPagination(teachers, TeacherMapper.toResponse);
   }
 
   @ApiParam({ name: 'id', type: String })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.teacherService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const teacher = await this.teacherService.findOne(id);
+    return teacher ? TeacherMapper.toResponse(teacher) : null;
   }
 
   @ApiParam({ name: 'id', type: String })
